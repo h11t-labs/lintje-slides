@@ -354,7 +354,8 @@ body {
 
 .slide:is([data-layout='photo-title'], [data-layout='photo-closing-block']) {
   grid-template-columns: 24px 48px 520px 48px 1fr 24px;
-  grid-template-rows: 120px 276px 40px auto auto auto minmax(0, 1fr) 48px;
+  /* The block keeps the canvas's height and grows upwards over the photo when the title is long. */
+  grid-template-rows: 120px minmax(0, 276px) 40px auto auto auto minmax(40px, 1fr) 48px;
 }
 
 .slide[data-layout='photo-quote'] {
