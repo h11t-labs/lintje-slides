@@ -72,16 +72,21 @@ npx lintje-slides check decks/brieven.html          # meldt wat niet past
 npx lintje-slides check decks/brieven.html --images # en zet een png per dia in out/brieven/
 npx lintje-slides pdf decks/brieven.html            # out/brieven.pdf
 npx lintje-slides pdf decks/brieven.html --dark     # out/brieven-dark.pdf
+npx lintje-slides bundle decks/brieven.html         # out/brieven.html, één los bestand
 ```
 
-Dubbelklik een deck niet: via `file://` laadt de browser de scripts niet. Zonder pad nemen de
+Dubbelklik een deck niet: via `file://` laadt de browser de scripts niet. Wil je een deck
+mailen of op een USB-stick zetten, maak dan een bundel: `out/<deck>.html` heeft de opmaak, de
+scripts, Lintje, RijksSans, de iconen en de foto's in zich, opent met een dubbelklik zonder
+server of internet, en doet alles wat het deck via de server doet, de sprekersweergave ook. Hij
+is een paar MB, vooral door Lintje en de foto's. Zonder pad nemen de
 opdrachten elk deck in de map en eronder: elk `.html`-bestand met `<section class="slide">`,
 buiten `node_modules/` en `out/`. Een andere server die de map van het project serveert, werkt
 ook; `lintje-slides serve` levert altijd de versie van Lintje die bij het pakket hoort.
 
 De controle meldt een onbekende indeling of veld, een ontbrekend veld, te veel woorden of punten,
 een foto zonder alt-tekst, opmaak in de inhoud, en tekst die niet in zijn vak past. Een deck met
-meldingen krijgt geen pdf.
+meldingen krijgt geen pdf en geen bundel.
 
 In de browser zet `?mode=dark` het deck donker, `?theme=defensie` probeert een ander thema dan het
 deck zelf noemt (`data-theme`), en `?check` toont de meldingen van de controle op de dia's.

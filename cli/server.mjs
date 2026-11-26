@@ -15,7 +15,7 @@ const mounts = [
   ['/node_modules/lintje/', lintje],
   ['/', root],
 ]
-const types = {
+export const types = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript',
   '.mjs': 'text/javascript',
@@ -29,7 +29,8 @@ const types = {
   '.webp': 'image/webp',
 }
 
-function fileFor(pathname) {
+/** The file a URL path serves, or null outside the mounts. */
+export function fileFor(pathname) {
   const [prefix, base] = mounts.find(([prefix]) => pathname.startsWith(prefix))
   const file = resolve(base, `.${pathname.slice(prefix.length - 1)}`)
   return file === base || file.startsWith(base.endsWith(sep) ? base : base + sep) ? file : null

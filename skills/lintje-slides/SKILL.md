@@ -31,7 +31,9 @@ het deck.
    of een dia half leeg is, een titel op één woord breekt of een foto het verkeerde deel toont.
    Klaar als de controle `in orde` zegt **en** je elke png hebt bekeken en goedgekeurd.
 5. **Exporteer** met `npx lintje-slides pdf decks/<naam>.html`, en met `--dark` voor de donkere
-   versie. Bekijken in de browser kan met `npx lintje-slides serve`.
+   versie. `npx lintje-slides bundle decks/<naam>.html` maakt `out/<naam>.html`: het deck als
+   één los bestand dat zonder server opent, om te mailen of mee te nemen. Bekijken in de browser
+   kan met `npx lintje-slides serve`.
 
 ## Het bestand
 
