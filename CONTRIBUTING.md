@@ -1,6 +1,7 @@
 # Meewerken aan @lintje/slides
 
-Lees eerst [`README.md`](README.md) en [`AGENTS.md`](AGENTS.md): de handleiding die bij het
+Lees eerst [`README.md`](README.md) en de skill
+[`skills/lintje-slides/SKILL.md`](skills/lintje-slides/SKILL.md): de handleiding die bij het
 pakket hoort, voor wie een presentatie maakt.
 
 ## De regels
@@ -16,7 +17,7 @@ pakket hoort, voor wie een presentatie maakt.
   Nederlands. Ook commitberichten, pull requests en issues zijn Nederlands.
 - **Een nieuwe indeling** komt in `src/layouts.js` en `src/slides.css`, en één keer gevuld in
   `examples/begrijpelijke-brieven.html`. `npm run catalog` zet hem in de catalogus van
-  `AGENTS.md`.
+  de skill, en de skill zegt wanneer je hem kiest.
 - **De markup is het contract.** Een indeling, een veld, een attribuut of een URL-parameter
   hernoemen of weghalen is een brekende wijziging.
 
@@ -28,7 +29,7 @@ npx playwright install chromium
 npm run dev                          # de server op poort 5190
 npm run check                        # elk deck in de repo, in licht
 npm run check -- --dark --images     # in donker, met een png per dia in out/
-npm run catalog                      # de catalogus in AGENTS.md uit src/layouts.js
+npm run catalog                      # de catalogus van de skill uit src/layouts.js
 ```
 
 Een wijziging aan de opmaak bekijk je in licht **en** donker, en in het overzicht (toets O). De

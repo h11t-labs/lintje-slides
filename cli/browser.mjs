@@ -26,7 +26,7 @@ export async function eachDeck(decks, { dark }, visit) {
       const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, reducedMotion: 'reduce' })
       page.on('pageerror', (error) => {
         failed = true
-        console.error(`${deck}: ${error.message}`)
+        console.error(`${deck}: fout in de pagina, vaak de data van een grafiek die niet de vorm van zijn soort heeft (${error.message})`)
       })
       await page.goto(`http://127.0.0.1:${port}${urlOf(deck)}?mode=${dark ? 'dark' : 'light'}`, { waitUntil: 'networkidle' })
       const ready = await page.waitForSelector('html[data-slides-ready]', { timeout: 15000 }).catch(() => null)

@@ -188,7 +188,7 @@ function checkSlide(slide) {
     const label = element.matches('h1') ? 'de titel' : element.dataset.field ? `veld "${element.dataset.field}"` : `een punt in "${field}"`
     if (overflows(element) || box.right > frame.right - 24 * scale + 1) report(`${label} past niet: maak de tekst korter`, element)
     // A field that fits its own box but stands past the frame was pushed there by the text above it.
-    else if (box.bottom > bottom + 1) report(`${label} valt van de dia: de tekst erboven is te lang`, element)
+    else if (box.bottom > bottom + 1) report(`${label} valt van de dia: de titel of de tekst erboven is te lang`, element)
   }
   if (!wasCurrent) slide.classList.remove('is-current')
   return findings

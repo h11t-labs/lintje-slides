@@ -19,7 +19,7 @@
     "cli",
     "src",
     "examples",
-    "AGENTS.md"
+    "skills"
   ],
   "exports": {
     "./slides.css": "./src/slides.css",

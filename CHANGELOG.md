@@ -13,7 +13,7 @@ of verwijderen is een brekende wijziging en begint hier met **Brekend:**.
 
 ### Toegevoegd
 
-- De eerste versie: presentaties in HTML in de nieuwe Rijkshuisstijl, met dertig indelingen in vijf ondergronden, een controle van elke dia, een pdf in licht en donker, en `AGENTS.md` als handleiding voor wie een presentatie maakt, mens of agent.
+- De eerste versie: presentaties in HTML in de nieuwe Rijkshuisstijl, met dertig indelingen in vijf ondergronden, een controle van elke dia, en een pdf in licht en donker.
 - De opdracht `lintje-slides` met `serve`, `check` (met `--images` een png per dia) en `pdf`, met `--dark` voor de donkere versie. Hij werkt op elk deck in een project en levert de versie van Lintje die bij het pakket hoort.
 - Presenteren in de browser: bladeren met toetsen en een clicker, knoppen die infaden als de muis beweegt, een overzicht van alle dia's (toets O), licht of donker (toets D, `?mode=dark`) en volledig scherm. Elke dia komt rustig in beeld, behalve bij minder beweging.
 

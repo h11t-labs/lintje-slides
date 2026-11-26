@@ -1,6 +1,6 @@
-// Writes the table of layouts into AGENTS.md, between its two catalogue markers, from
-// src/layouts.js: the handbook never lists a field the check does not know.
-import { readFile, writeFile } from 'node:fs/promises'
+// Writes the skill's catalogue of layouts, skills/lintje-slides/layouts.md, from src/layouts.js:
+// the skill never lists a field the check does not know.
+import { writeFile } from 'node:fs/promises'
 import { LAYOUTS } from '../src/layouts.js'
 
 const KINDS = {
@@ -22,15 +22,23 @@ function field(name, spec) {
 
 const rows = Object.entries(LAYOUTS).map(([id, layout]) => {
   const fields = Object.entries(layout.fields).map(([name, spec]) => field(name, spec))
-  const extra = [layout.logo && 'met embleem', layout.footer === false && 'zonder voet'].filter(Boolean).join(', ')
+  const extra = [
+    layout.titleWords && `titel ≤ ${layout.titleWords} woorden`,
+    layout.logo && 'met embleem',
+    layout.footer === false && 'zonder voet',
+  ]
+    .filter(Boolean)
+    .join(', ')
   return `| \`${id}\` | ${layout.use}${extra ? ` (${extra})` : ''} | ${fields.join('<br>')} |`
 })
 
+const intro = `# De indelingen
+
+Elke indeling met waar hij voor is en zijn velden naast de \`<h1>\`. Een veld is een element met
+\`data-field="<naam>"\` direct in de \`<section>\`; de grenzen zijn een maximum, en de controle
+meldt wat erboven gaat. Dit bestand komt uit \`src/layouts.js\`.
+`
 const table = ['| indeling | wanneer | velden naast de `<h1>` |', '|---|---|---|', ...rows].join('\n')
-const file = new URL('../AGENTS.md', import.meta.url)
-const text = await readFile(file, 'utf8')
-const start = '<!-- catalog:begin -->'
-const end = '<!-- catalog:end -->'
-const updated = text.replace(new RegExp(`${start}[\\s\\S]*?${end}`), `${start}\n${table}\n${end}`)
-await writeFile(file, updated)
-console.log(`AGENTS.md: ${rows.length} indelingen`)
+const file = new URL('../skills/lintje-slides/layouts.md', import.meta.url)
+await writeFile(file, `${intro}\n${table}\n`)
+console.log(`skills/lintje-slides/layouts.md: ${rows.length} indelingen`)
