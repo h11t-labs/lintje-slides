@@ -1,6 +1,6 @@
 {
   "name": "@lintje/slides",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "type": "module",
   "description": "Lintje slides: presentations in HTML in the Rijkshuisstijl, with thirty layouts, a check and a PDF",
   "license": "EUPL-1.2",
