@@ -4,7 +4,7 @@
 import { createServer } from 'node:http'
 import { readdir, readFile, stat } from 'node:fs/promises'
 import { createRequire } from 'node:module'
-import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path'
+import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 export const root = process.cwd()
@@ -34,6 +34,15 @@ export function fileFor(pathname) {
   const [prefix, base] = mounts.find(([prefix]) => pathname.startsWith(prefix))
   const file = resolve(base, `.${pathname.slice(prefix.length - 1)}`)
   return file === base || file.startsWith(base.endsWith(sep) ? base : base + sep) ? file : null
+}
+
+/** The URL path a file is served at: the other way round from fileFor, the deepest mount first. */
+export function urlFor(file) {
+  for (const [prefix, base] of [...mounts].sort((a, b) => b[1].length - a[1].length)) {
+    const path = relative(base, file)
+    if (!path.startsWith('..') && !isAbsolute(path)) return prefix + path.split(sep).join('/')
+  }
+  return null
 }
 
 export function serve(port = Number(process.env.PORT ?? 5190)) {

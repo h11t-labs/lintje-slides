@@ -1,11 +1,15 @@
 // Writes each deck to out/<deck>.html: one file that opens with a double click, without a server
-// or a network. The stylesheet, the fonts, the photos and the icons go in as text or data URLs;
-// the deck's module script stays inline, and an import map hands it Lintje and the layouts as
-// data URLs, so its imports stay as they are. Like the PDF, a deck with findings gets no bundle.
+// or a network. The stylesheet, the fonts, the photos and the icons go in as text or data URLs.
+// The deck's module script stays inline; every module it reaches goes in an import map as a data
+// URL, under a bare name made of the path it is served at (bundle/node_modules/…), with its own
+// imports pointed at those names: a data URL has no folder to resolve a path in. Only what the deck loads goes in: the Lintje
+// tags slides.js imports, and the chart's when the deck has one. Like the PDF, a deck with
+// findings gets no bundle.
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import { dirname, extname, resolve } from 'node:path'
 import { eachDeck, printFindings } from './browser.mjs'
-import { fileFor, root, types } from './server.mjs'
+import { fileFor, root, types, urlFor } from './server.mjs'
 
 export async function bundle(decks) {
   await mkdir('out', { recursive: true })
@@ -40,10 +44,8 @@ async function inline(deckFile, loaded) {
     for (const [, icon] of source.matchAll(/['"`]((?:functioneel|multimedia)-[a-z0-9-]+)['"`]/g)) icons.add(icon)
     for (const [, icon] of source.matchAll(/icon="((?:functioneel|multimedia)-[a-z0-9-]+)"/g)) icons.add(icon)
     const imports = {}
-    for (const [, specifier] of source.matchAll(/^import\s[^'"]*['"]([^'"]+)['"]/gm)) {
-      imports[specifier] = await dataUrl(locate(specifier, scriptFile))
-    }
-    return `<script type="importmap">${JSON.stringify({ imports })}</script>\n<script type="module">\n${script(source)}\n</script>`
+    const entry = await modules(source, scriptFile, imports, { dynamic: html.includes('<lintje-chart') })
+    return `<script type="importmap">${JSON.stringify({ imports })}</script>\n<script type="module">\n${script(entry)}\n</script>`
   })
 
   // A photo goes in once, however often the deck shows it: a script sets each <img> from the
@@ -83,6 +85,33 @@ async function inline(deckFile, loaded) {
 }
 </script>`
   return html.replace(/<head[^>]*>/, (head) => `${head}\n${script(shim, false)}`)
+}
+
+// A module's imports, static and dynamic, as minified code writes them too: from"./x.js".
+const IMPORT = /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s*)(["'])([./][^"'\s]*)\2/g
+
+/**
+ * The module's text with each import pointed at the bare name of its file, after putting
+ * every module it reaches in `imports`. The entry's dynamic imports are followed only when
+ * `dynamic` says the deck needs them (the chart).
+ */
+async function modules(source, file, imports, { dynamic = true } = {}) {
+  const targets = new Map()
+  for (const [, keyword, , specifier] of source.matchAll(IMPORT)) {
+    if (!dynamic && keyword.includes('(')) continue
+    const target = specifier.startsWith('/') ? fileFor(specifier) : resolve(dirname(file), specifier)
+    const path = target && existsSync(target) ? urlFor(target) : null
+    if (!path) continue
+    const key = `bundle${path}`
+    targets.set(specifier, key)
+    if (key in imports) continue
+    imports[key] = ''
+    const text = await modules(await readFile(target, 'utf8'), target, imports)
+    imports[key] = `data:text/javascript;base64,${Buffer.from(text).toString('base64')}`
+  }
+  return source.replace(IMPORT, (match, keyword, quote, specifier) =>
+    targets.has(specifier) ? `${keyword}${quote}${targets.get(specifier)}${quote}` : match,
+  )
 }
 
 // A stylesheet with its @imports in it and every url() as a data URL.

@@ -1,11 +1,18 @@
 // Turns a page of <section class="slide" data-layout="…"> into a deck: scaling, paging, the
-// foot, the emblem, and the check of every slide against its layout. It loads lintje.js
-// itself: core.js beside it would be a second copy of the module's state. Lintje lives at one
-// URL, from the root of the project, where lintje-slides serves the copy it was installed with.
-import { setIconSource } from '/node_modules/lintje/dist-elements/lintje.js'
+// foot, the emblem, and the check of every slide against its layout. It loads only the Lintje
+// tags a deck draws, each from its own file, so a bundle carries no more; they share one copy of
+// Lintje's state with core.js. Lintje lives at one URL, from the root of the project, where
+// lintje-slides serves the copy it was installed with.
+import { setIconSource } from '/node_modules/lintje/dist-elements/core.js'
+import '/node_modules/lintje/dist-elements/tag/dialog.js'
+import '/node_modules/lintje/dist-elements/tag/icon-button.js'
+import '/node_modules/lintje/dist-elements/tag/key.js'
+import '/node_modules/lintje/dist-elements/tag/logo.js'
 import { LAYOUTS } from './layouts.js'
 
 setIconSource({ base: new URL('/node_modules/lintje/dist-icons/', location.href).href })
+// A chart is the one Lintje tag a slide holds itself, and the largest: it loads only when there is one.
+if (document.querySelector('lintje-chart')) await import('/node_modules/lintje/dist-elements/tag/chart.js')
 
 const params = new URLSearchParams(location.search)
 if (params.get('mode') === 'dark' || params.get('mode') === 'light') document.documentElement.dataset.mode = params.get('mode')

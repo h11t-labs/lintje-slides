@@ -78,8 +78,9 @@ npx lintje-slides bundle decks/brieven.html         # out/brieven.html, één lo
 Dubbelklik een deck niet: via `file://` laadt de browser de scripts niet. Wil je een deck
 mailen of op een USB-stick zetten, maak dan een bundel: `out/<deck>.html` heeft de opmaak, de
 scripts, Lintje, RijksSans, de iconen en de foto's in zich, opent met een dubbelklik zonder
-server of internet, en doet alles wat het deck via de server doet, de sprekersweergave ook. Hij
-is een paar MB, vooral door Lintje en de foto's. Zonder pad nemen de
+server of internet, en doet alles wat het deck via de server doet, de sprekersweergave ook. Van
+Lintje gaat alleen mee wat het deck tekent, de grafiek alleen als er een is; de rest van de
+grootte zijn vooral de foto's. Zonder pad nemen de
 opdrachten elk deck in de map en eronder: elk `.html`-bestand met `<section class="slide">`,
 buiten `node_modules/` en `out/`. Een andere server die de map van het project serveert, werkt
 ook; `lintje-slides serve` levert altijd de versie van Lintje die bij het pakket hoort.
