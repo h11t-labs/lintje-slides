@@ -103,9 +103,19 @@ pijltoetsen en Enter. Met het toetsenbord gaat het zo:
 | F | volledig scherm aan of uit |
 | O | overzicht van alle dia's; Escape of O sluit het |
 | D | licht of donker; de keuze komt in de URL (`?mode=dark`) |
+| S | de sprekersweergave, in een tweede venster |
 
 Het nummer van de dia staat in de URL (`#3`). Herlaad je de pagina of deel je de link, dan kom je
 op dezelfde dia uit.
+
+### Sprekersweergave
+
+Een dia kan notities hebben, in een `<aside data-notes>` in de dia. De zaal ziet ze nooit: niet
+op de dia, in het overzicht of in de pdf. S of de knop Sprekersweergave opent de
+sprekersweergave in een tweede venster (`?presenter`): de dia die de zaal ziet, de volgende, de
+notities, de klok en de verstreken tijd, met een knop die de tijd op nul zet. De twee vensters
+lopen gelijk, ook licht of donker, wat je ook gebruikt om te bladeren. Zet de sprekersweergave op
+je eigen scherm, sleep het zaalvenster naar de beamer en druk daar op F.
 
 ## Hoe het werkt
 

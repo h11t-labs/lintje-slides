@@ -1498,7 +1498,7 @@ body {
     visibility: hidden;
   }
 
-  html[data-slides-ready]:not(.slides-overview, .slides-pdf) .slide.is-current {
+  html[data-slides-ready]:not(.slides-overview, .slides-pdf, .slides-speaking) .slide.is-current {
     &::before {
       animation: slide-plane 550ms var(--ease-fade) backwards;
     }
@@ -1611,6 +1611,154 @@ html.slides-overview,
 
 .slides-overview :is(.slides-nav__previous, .slides-nav__count, .slides-nav__next) {
   display: none;
+}
+
+/* Notes are for the speaker: never on the slide, in the overview, the PDF or on paper. */
+.slide > aside[data-notes] {
+  display: none;
+}
+
+/* The speaker's view (`?presenter`): the slide now, the next one and the notes, with the time and
+   the controls above. slides.js lays each slide over its frame; the rest is this grid. */
+.slides-presenter {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template:
+    'bar bar' auto
+    'now next' auto
+    'now notes' minmax(0, 1fr)
+    / minmax(0, 3fr) minmax(0, 2fr);
+  gap: var(--space-6);
+  padding: var(--space-6);
+  color: var(--color-text-primary);
+}
+
+.slides-speaking .slide {
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+
+.slides-speaking .slide:is(.is-current, .is-next) {
+  display: grid;
+}
+
+.slides-presenter__bar {
+  grid-area: bar;
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+}
+
+.slides-presenter__clock,
+.slides-presenter__elapsed {
+  font: var(--text-section);
+  font-variant-numeric: tabular-nums;
+}
+
+.slides-presenter__elapsed {
+  color: var(--color-text-secondary);
+}
+
+/* The controls stand in the bar, always in view, without the overview. */
+.slides-presenter .slides-nav {
+  position: static;
+  margin: 0 0 0 auto;
+}
+
+.slides-presenter .slides-nav.is-idle {
+  opacity: 1;
+}
+
+.slides-presenter :is(.slides-nav__overview, .slides-nav__speaker) {
+  display: none;
+}
+
+.slides-presenter__now,
+.slides-presenter__next {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: var(--space-2);
+  min-height: 0;
+}
+
+.slides-presenter__now {
+  grid-area: now;
+}
+
+.slides-presenter__next {
+  grid-area: next;
+}
+
+.slides-presenter__frame {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+}
+
+.slides-presenter__next .slides-presenter__frame {
+  aspect-ratio: 16 / 9;
+}
+
+.slides-presenter__label {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font: var(--text-meta);
+}
+
+.slides-presenter__end {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  margin: 0;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  font: var(--text-ui);
+}
+
+.slides-presenter__end[hidden] {
+  display: none;
+}
+
+/* Read at arm's length, while talking: larger than body text, and it scrolls when it is long. */
+.slides-presenter__notes {
+  grid-area: notes;
+  overflow: auto;
+  padding-block-start: var(--space-4);
+  border-top: 1px solid var(--color-border-default);
+  font: var(--text-h2);
+  font-weight: 400;
+  line-height: 1.5;
+
+  & :is(p, ul, ol) {
+    margin: 0 0 var(--space-3);
+  }
+
+  & :is(ul, ol) {
+    padding-inline-start: var(--space-6);
+  }
+}
+
+.slides-presenter__empty {
+  color: var(--color-text-muted);
+}
+
+/* A narrow window stacks the view: the slide, the notes, then what comes next. */
+@media (max-width: 800px) {
+  .slides-presenter {
+    grid-template:
+      'bar' auto
+      'now' minmax(0, 2fr)
+      'notes' minmax(0, 2fr)
+      'next' minmax(0, 1fr)
+      / minmax(0, 1fr);
+  }
+
+  .slides-presenter__next .slides-presenter__frame {
+    aspect-ratio: auto;
+  }
 }
 
 /* A finding of the check, on the slide itself while `?controle` is in the URL. */

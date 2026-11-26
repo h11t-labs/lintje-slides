@@ -154,7 +154,7 @@ function checkSlide(slide) {
 
   const seen = new Set()
   for (const child of slide.children) {
-    if (child.matches('h1, .slide__footer, .slide__logo, .slide__finding, .slide__number')) continue
+    if (child.matches('h1, aside[data-notes], .slide__footer, .slide__logo, .slide__finding, .slide__number')) continue
     const field = child.dataset.field
     if (field === undefined) report(`<${child.tagName.toLowerCase()}> zonder data-field: alles op een dia staat in een veld`, child)
     else if (!layout.fields[field]) report(`"${field}" is geen veld van ${name}; wel: ${Object.keys(layout.fields).join(', ')}`, child)
@@ -236,6 +236,7 @@ nav.innerHTML = `
   <lintje-icon-button class="slides-nav__next" icon="functioneel-delta-naar-rechts" label="Volgende dia"></lintje-icon-button>
   <lintje-icon-button class="slides-nav__mode" icon="functioneel-darkmode" label="Donker"></lintje-icon-button>
   <lintje-icon-button class="slides-nav__overview" icon="functioneel-tegelweergave" label="Alle dia's"></lintje-icon-button>
+  <lintje-icon-button class="slides-nav__speaker" icon="functioneel-toelichting" label="Sprekersweergave"></lintje-icon-button>
   <lintje-icon-button class="slides-nav__fullscreen" icon="multimedia-player-full-screen" label="Volledig scherm"></lintje-icon-button>`
 document.body.append(nav)
 
@@ -245,15 +246,21 @@ const next = nav.querySelector('.slides-nav__next')
 const overviewButton = nav.querySelector('.slides-nav__overview')
 const fullscreenButton = nav.querySelector('.slides-nav__fullscreen')
 const modeButton = nav.querySelector('.slides-nav__mode')
+const speakerButton = nav.querySelector('.slides-nav__speaker')
 const root = document.documentElement
 
 function show(number) {
-  slides.forEach((slide, index) => slide.classList.toggle('is-current', index === number - 1))
+  slides.forEach((slide, index) => {
+    slide.classList.toggle('is-current', index === number - 1)
+    slide.classList.toggle('is-next', index === number)
+  })
   count.textContent = `${number} / ${slides.length}`
   previous.disabled = number === 1
   next.disabled = number === slides.length
   const title = slides[number - 1]?.querySelector(':scope > h1')?.textContent.trim()
-  document.title = `${title ?? deck} (${number}/${slides.length})`
+  document.title = `${presenting ? 'Spreker: ' : ''}${title ?? deck} (${number}/${slides.length})`
+  if (presenting) speak(number)
+  tell()
 }
 
 function go(number) {
@@ -277,6 +284,110 @@ function mode(dark = root.dataset.mode !== 'dark') {
   const url = new URL(location.href)
   url.searchParams.set('mode', dark ? 'dark' : 'light')
   history.replaceState(null, '', url)
+  tell()
+}
+
+// --- The speaker's view ------------------------------------------------------------------------
+
+// `?presenter` is the same deck in a second window: the slide now, the next one, the notes and the
+// time. The two windows keep each other on the same slide and mode. A BroadcastChannel reaches the
+// other window after either reloads; postMessage between opener and popup also works over file://,
+// where a channel may not.
+const presenting = params.has('presenter')
+const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel(`lintje-slides ${location.pathname}`) : null
+let speakerWindow = null
+
+function peers() {
+  return [window.opener, speakerWindow].filter((peer) => peer && !peer.closed)
+}
+
+function tell() {
+  const message = { lintjeSlides: 1, slide: current(), dark: root.dataset.mode === 'dark' }
+  channel?.postMessage(message)
+  for (const peer of peers()) peer.postMessage(message, '*')
+}
+
+function heard(message) {
+  if (message?.lintjeSlides !== 1) return
+  // The slide first: mode() tells the other window again, and must tell it the new slide.
+  go(message.slide)
+  if (message.dark !== (root.dataset.mode === 'dark')) mode(message.dark)
+}
+
+channel?.addEventListener('message', (event) => heard(event.data))
+addEventListener('message', (event) => peers().includes(event.source) && heard(event.data))
+
+function openSpeaker() {
+  if (presenting) return
+  const url = new URL(location.href)
+  url.searchParams.set('presenter', '')
+  speakerWindow = open(url, `lintje-slides ${location.pathname}`, 'popup,width=1280,height=800')
+  speakerWindow?.focus()
+}
+
+let speaker
+if (presenting) {
+  root.classList.add('slides-speaking')
+  speaker = document.createElement('div')
+  speaker.className = 'slides-presenter'
+  speaker.innerHTML = `
+    <div class="slides-presenter__bar">
+      <span class="slides-presenter__clock"></span>
+      <span class="slides-presenter__elapsed" title="Verstreken tijd"></span>
+      <lintje-icon-button class="slides-presenter__reset" icon="functioneel-refresh" label="Tijd op nul"></lintje-icon-button>
+    </div>
+    <section class="slides-presenter__now" aria-label="Huidige dia">
+      <p class="slides-presenter__label">Nu</p>
+      <div class="slides-presenter__frame"></div>
+    </section>
+    <section class="slides-presenter__next" aria-label="Volgende dia">
+      <p class="slides-presenter__label">Volgende</p>
+      <div class="slides-presenter__frame"><p class="slides-presenter__end">Einde van de presentatie</p></div>
+    </section>
+    <section class="slides-presenter__notes" aria-label="Notities"></section>`
+  document.body.prepend(speaker)
+  speaker.querySelector('.slides-presenter__bar').append(nav)
+  let start = Date.now()
+  const clock = speaker.querySelector('.slides-presenter__clock')
+  const elapsed = speaker.querySelector('.slides-presenter__elapsed')
+  const tick = () => {
+    const seconds = Math.floor((Date.now() - start) / 1000)
+    const pad = (n) => String(n).padStart(2, '0')
+    clock.textContent = new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
+    elapsed.textContent = `${Math.floor(seconds / 3600)}:${pad(Math.floor(seconds / 60) % 60)}:${pad(seconds % 60)}`
+  }
+  speaker.querySelector('.slides-presenter__reset').addEventListener('click', () => {
+    start = Date.now()
+    tick()
+  })
+  tick()
+  setInterval(tick, 1000)
+  new ResizeObserver(() => place()).observe(speaker)
+}
+
+// Each slide stands at the top of its frame, scaled to fit it; the next one is a preview, out of
+// reach.
+function place() {
+  const [nowFrame, nextFrame] = speaker.querySelectorAll('.slides-presenter__frame')
+  slides.forEach((slide, index) => {
+    const frame = slide.classList.contains('is-current') ? nowFrame : slide.classList.contains('is-next') ? nextFrame : null
+    slide.inert = frame === nextFrame
+    if (!frame) return slide.style.removeProperty('transform')
+    const box = frame.getBoundingClientRect()
+    const factor = Math.min(box.width / width, box.height / height)
+    const x = box.left + (box.width - width * factor) / 2
+    const y = box.top
+    slide.style.transform = `translate(${x}px, ${y}px) scale(${factor})`
+  })
+}
+
+function speak(number) {
+  const notes = slides[number - 1]?.querySelector(':scope > aside[data-notes]')
+  const box = speaker.querySelector('.slides-presenter__notes')
+  if (notes?.textContent.trim()) box.replaceChildren(...notes.cloneNode(true).childNodes)
+  else box.innerHTML = '<p class="slides-presenter__empty">Geen notities bij deze dia.</p>'
+  speaker.querySelector('.slides-presenter__end').hidden = number < slides.length
+  place()
 }
 
 function fullscreenChanged() {
@@ -346,6 +457,7 @@ modeButton.pressed = root.dataset.mode === 'dark'
 previous.addEventListener('click', () => go(current() - 1))
 next.addEventListener('click', () => go(current() + 1))
 fullscreenButton.addEventListener('click', fullscreen)
+speakerButton.addEventListener('click', openSpeaker)
 
 addEventListener('keydown', (event) => {
   // A key a Lintje element already handled (a chart's marks) or one typed into a field stays there.
@@ -366,8 +478,9 @@ addEventListener('keydown', (event) => {
     Home: () => go(1),
     End: () => go(slides.length),
     f: fullscreen,
-    o: () => overview(true),
+    o: () => presenting || overview(true),
     d: () => mode(),
+    s: openSpeaker,
   }
   const action = keys[event.key]
   if (!action) return
