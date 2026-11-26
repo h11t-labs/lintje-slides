@@ -238,7 +238,7 @@ nav.innerHTML = `
   <lintje-icon-button class="slides-nav__overview" icon="functioneel-tegelweergave" label="Alle dia's"></lintje-icon-button>
   <lintje-icon-button class="slides-nav__speaker" icon="functioneel-externe-link" label="Sprekersweergave"></lintje-icon-button>
   <lintje-icon-button class="slides-nav__fullscreen" icon="multimedia-player-full-screen" label="Volledig scherm"></lintje-icon-button>
-  <lintje-icon-button class="slides-nav__help" icon="functioneel-vraagteken-outline" label="Sneltoetsen"></lintje-icon-button>`
+  <lintje-icon-button class="slides-nav__help" icon="functioneel-vraagteken" label="Sneltoetsen"></lintje-icon-button>`
 document.body.append(nav)
 
 // The keys, for the help window; the keydown handler below does what they say.
