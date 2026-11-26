@@ -1656,9 +1656,39 @@ html.slides-overview,
   display: none;
 }
 
+.slides-presenter__title {
+  flex: 1;
+  margin: 0;
+  color: var(--color-accent-text);
+  font: var(--text-section);
+}
+
 .slides-presenter__time {
   display: grid;
   margin: 0;
+}
+
+/* Setting the duration back is rare: its button shows on hover or focus of the duration, and
+   always on a touch screen, beside the time so nothing moves when it comes. */
+.slides-presenter__time--duration {
+  grid-template-columns: auto auto;
+  column-gap: var(--space-2);
+  align-items: center;
+
+  & .slides-presenter__label {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (hover: hover) {
+  .slides-presenter__reset {
+    opacity: 0;
+    transition: opacity var(--dur-base) var(--ease-fade);
+  }
+
+  .slides-presenter__time--duration:is(:hover, :focus-within) .slides-presenter__reset {
+    opacity: 1;
+  }
 }
 
 .slides-presenter__clock,

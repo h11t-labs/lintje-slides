@@ -358,9 +358,12 @@ if (presenting) {
   speaker.className = 'slides-presenter'
   speaker.innerHTML = `
     <div class="slides-presenter__bar">
+      <h1 class="slides-presenter__title"></h1>
       <p class="slides-presenter__time"><span class="slides-presenter__label">Tijd</span><span class="slides-presenter__clock"></span></p>
-      <p class="slides-presenter__time"><span class="slides-presenter__label">Duur</span><span class="slides-presenter__elapsed"></span></p>
-      <lintje-icon-button class="slides-presenter__reset" icon="functioneel-refresh" label="Duur op nul"></lintje-icon-button>
+      <div class="slides-presenter__time slides-presenter__time--duration">
+        <span class="slides-presenter__label">Duur</span><span class="slides-presenter__elapsed"></span>
+        <lintje-icon-button class="slides-presenter__reset" icon="functioneel-refresh" label="Duur op nul"></lintje-icon-button>
+      </div>
     </div>
     <section class="slides-presenter__now" aria-label="Huidige dia">
       <p class="slides-presenter__label">Nu</p>
@@ -374,6 +377,7 @@ if (presenting) {
       <p class="slides-presenter__label">Notities</p>
       <div class="slides-presenter__text"></div>
     </section>`
+  speaker.querySelector('.slides-presenter__title').textContent = deck
   document.body.prepend(speaker)
   speaker.querySelector('.slides-presenter__bar').append(nav)
   let start = Date.now()
