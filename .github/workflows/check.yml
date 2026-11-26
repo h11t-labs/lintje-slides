@@ -1,0 +1,36 @@
+# What a change has to pass: the check of every deck in the repo, in light and dark, a catalogue in
+# AGENTS.md that matches src/layouts.js, and a package with the files a deck needs.
+name: Check
+
+# Once per pull request: main only takes merged pull requests, and a tag runs release.yml, which
+# calls this workflow before it publishes. "Run workflow" checks any branch by hand.
+on:
+  pull_request:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run check
+      - run: npm run check -- --dark
+      - name: The catalogue matches src/layouts.js
+        run: npm run catalog && git diff --exit-code AGENTS.md
+      - name: The package holds what a deck loads
+        run: |
+          npm pack --dry-run --json > pack.json
+          node -e "
+            const files = require('./pack.json')[0].files.map((f) => f.path)
+            const needed = ['bin/lintje-slides.mjs', 'cli/server.mjs', 'src/slides.css', 'src/slides.js', 'src/layouts.js', 'AGENTS.md', 'LICENSE']
+            const missing = needed.filter((f) => !files.includes(f))
+            if (missing.length) throw new Error('missing from the package: ' + missing.join(', '))
+          "

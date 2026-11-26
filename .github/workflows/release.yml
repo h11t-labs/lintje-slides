@@ -1,0 +1,47 @@
+# Publishes a release when a version tag (v0.2.0) is pushed: the package is staged on npm for a
+# maintainer to approve with 2FA (`npm stage publish`), and a GitHub release carries the tarball
+# and the changelog section of that version as its notes. The tag must equal the version in
+# package.json and have its section in CHANGELOG.md, and the release passes check.yml first.
+# Needs the repository secret NPM_TOKEN, a granular token with stage-only access to @lintje;
+# --provenance links the package to this run.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  check:
+    uses: ./.github/workflows/check.yml
+
+  publish:
+    needs: check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          # Staging needs npm 11.15 on Node 22.14; the npm that comes with Node is older.
+          node-version: 22
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm install -g npm@latest
+      - run: npm ci
+      - name: The tag is the version
+        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+      - name: The changelog has this version
+        run: node scripts/release-notes.mjs "$GITHUB_REF_NAME" > release-notes.md
+      - run: npm pack
+      - name: Stage the package on npm, for a maintainer to approve
+        run: npm stage publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: The GitHub release
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file release-notes.md lintje-slides-*.tgz
+        env:
+          GH_TOKEN: ${{ github.token }}

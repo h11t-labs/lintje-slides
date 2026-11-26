@@ -1,0 +1,139 @@
+# @lintje/slides
+
+Presentaties in HTML met [Lintje](https://github.com/h11t-labs/lintje), in de nieuwe
+Rijkshuisstijl. Een presentatie is één HTML-bestand. Elke dia kiest een van dertig indelingen en
+vult die met tekst, foto's en data. De opmaak komt uit de indeling, dus een mens en een agent
+maken dezelfde dia's. Je presenteert in de browser en exporteert naar pdf, in licht en donker.
+
+De dertig indelingen staan in vijf ondergronden: foto, licht vlak, blauwe band, vol blauw en half
+beeld. [`AGENTS.md`](AGENTS.md) beschrijft ze allemaal, met hun velden.
+[`examples/begrijpelijke-brieven.html`](examples/begrijpelijke-brieven.html) gebruikt elke
+indeling één keer.
+
+## Installeren
+
+```bash
+npm install --save-dev @lintje/slides
+npx playwright install chromium   # eenmalig, voor de controle en de pdf
+```
+
+Het pakket brengt zijn eigen versie van Lintje mee. Start de opdrachten in de map van je project,
+waar `node_modules/` staat.
+
+## Een presentatie maken
+
+Kopieer het voorbeeld, `node_modules/@lintje/slides/examples/begrijpelijke-brieven.html`, naar
+je project, houd de dia's die je nodig hebt en vervang hun inhoud. Twee regels in de `<head>`
+laden het pakket:
+
+```html
+<link rel="stylesheet" href="/node_modules/@lintje/slides/src/slides.css" />
+<script type="module" src="/node_modules/@lintje/slides/src/slides.js"></script>
+```
+
+Een dia ziet er zo uit:
+
+```html
+<section class="slide" data-layout="band-list" data-chapter="1 Waarom">
+  <h1>Een brief die niet begrepen wordt, kost twee keer</h1>
+  <p data-field="intro">Elke vraag die binnenkomt, is werk dat de brief had kunnen voorkomen.</p>
+  <div data-field="points">
+    <ul>
+      <li>Wie de brief niet snapt, belt, mailt of komt langs.</li>
+      <li>Op taalniveau B1 lezen de meeste mensen een brief in één keer.</li>
+    </ul>
+  </div>
+</section>
+```
+
+De voet, het embleem, de nummers en de opsommingstekens zet `slides.js` erbij. In `AGENTS.md`
+staat welke velden elke indeling heeft en wat erin mag. Geef je agent die handleiding mee,
+bijvoorbeeld met een regel in je eigen `AGENTS.md`: "Lees voor een presentatie
+`node_modules/@lintje/slides/AGENTS.md`."
+
+## Bekijken, controleren en exporteren
+
+```bash
+npx lintje-slides serve                             # een server op poort 5190, met een link per deck
+npx lintje-slides check decks/brieven.html          # meldt wat niet past
+npx lintje-slides check decks/brieven.html --images # en zet een png per dia in out/brieven/
+npx lintje-slides pdf decks/brieven.html            # out/brieven.pdf
+npx lintje-slides pdf decks/brieven.html --dark     # out/brieven-dark.pdf
+```
+
+Dubbelklik een deck niet: via `file://` laadt de browser de scripts niet. Zonder pad nemen de
+opdrachten elk deck in de map en eronder: elk `.html`-bestand met `<section class="slide">`,
+buiten `node_modules/` en `out/`. Een andere server die de map van het project serveert, werkt
+ook; `lintje-slides serve` levert altijd de versie van Lintje die bij het pakket hoort.
+
+De controle meldt een onbekende indeling of veld, een ontbrekend veld, te veel woorden of punten,
+een foto zonder alt-tekst, opmaak in de inhoud, en tekst die niet in zijn vak past. Een deck met
+meldingen krijgt geen pdf.
+
+In de browser zet `?mode=dark` het deck donker, `?theme=defensie` probeert een ander thema dan het
+deck zelf noemt (`data-theme`), en `?check` toont de meldingen van de controle op de dia's.
+
+## Presenteren
+
+Onderaan in het midden staan knoppen voor de vorige dia, de volgende dia, licht of donker, het
+overzicht van alle dia's en volledig scherm. Ze faden in als je de muis beweegt en faden langzamer
+uit als hij even stilstaat, als je bladert met de toetsen of een clicker, en kort nadat het deck
+opent. In de pdf staan ze nooit. In het overzicht staan alle dia's klein naast elkaar, met hun
+nummer; de dia waar je bent heeft een rand en de rest is gedimd: klik er een aan, of kies met de
+pijltoetsen en Enter. Met het toetsenbord gaat het zo:
+
+| toets | wat er gebeurt |
+|---|---|
+| → ↓ spatie PageDown | volgende dia |
+| ← ↑ shift+spatie PageUp | vorige dia |
+| Home / End | eerste / laatste dia |
+| F | volledig scherm aan of uit |
+| O | overzicht van alle dia's; Escape of O sluit het |
+| D | licht of donker; de keuze komt in de URL (`?mode=dark`) |
+
+Het nummer van de dia staat in de URL (`#3`). Herlaad je de pagina of deel je de link, dan kom je
+op dezelfde dia uit.
+
+## Hoe het werkt
+
+- `src/layouts.js` noemt de indelingen en hun velden. De controle en de catalogus in `AGENTS.md`
+  lezen hem.
+- `src/slides.css` tekent de indelingen. Elke indeling is een grid over het vlak van 1280 × 720:
+  een langere titel duwt wat eronder staat omlaag. De kleuren zijn tokens van Lintje, dus het
+  thema en de donkere modus komen uit Lintje.
+- `src/slides.js` schaalt de dia naar het scherm, bladert, zet de voet en het embleem en
+  controleert elke dia.
+- `lintje-slides` (`bin/` en `cli/`) serveert het project, en opent elk deck in Chromium voor de
+  controle en de pdf.
+
+## Wat afwijkt van Lintje
+
+`src/slides.css` noemt alleen tokens van Lintje voor kleur, ruimte tussen tekst en de hoeken. De
+controle van Lintje (`node node_modules/lintje/dist-elements/skills/lintje/check.mjs
+node_modules/lintje/dist-elements/tokens.json src/slides.css`) meldt toch zeventien plekken. Die
+staan er met reden:
+
+- **Plaatsen op het vlak**: de voet op 684 px, de witte rand van 24 en 48 px, de marge van 72 px,
+  het vlak van de stappen vanaf 845 px, de kolommen van de planning. Een dia is een vast vlak van
+  1280 × 720 en geen pagina; deze maten komen uit het ontwerpcanvas.
+- **Uitlijning**: het grote aanhalingsteken staat waar het canvas het zet.
+- **`--slide-scale`** is de schaal waarmee `slides.js` de dia op het scherm past.
+- **Het overzicht**: `slides.js` zet het aantal kolommen en de verkleining
+  (`--slide-overview-columns`, `--slide-overview-zoom`), en marges van 1280 en 720 px maal die
+  verkleining trekken de kleine dia's tegen elkaar.
+- **Letters in punten**: een dia heeft een eigen schaal (titel 32 pt, tekst 18 pt), want hij wordt
+  van een afstand gelezen. Lintje's tekststappen zijn voor een scherm op armlengte.
+
+De foto's in het voorbeeld zijn vrij te gebruiken (CC0, van Wikimedia Commons); de bronnen staan
+in [`examples/photos/SOURCES.md`](examples/photos/SOURCES.md). Zet er voor echt gebruik foto's
+uit de beeldbank van je organisatie in. De cijfers in het voorbeeld zijn fictief.
+
+## Meewerken
+
+Hoe je aan het pakket werkt en hoe een release gaat, staat in
+[`CONTRIBUTING.md`](CONTRIBUTING.md). Wat er per versie veranderde, staat in
+[`CHANGELOG.md`](CHANGELOG.md).
+
+## Licentie
+
+[EUPL-1.2](LICENSE).

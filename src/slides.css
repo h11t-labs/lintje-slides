@@ -1,0 +1,1677 @@
+/* One URL per Lintje file, the one slides.js loads lintje.js from: lintje-slides serves it. */
+@import url('/node_modules/lintje/dist-elements/fonts.css');
+@import url('/node_modules/lintje/dist-elements/tokens.css');
+
+/*
+ * A slide is a fixed 1280 × 720 frame that slides.js scales to the screen. Every layout is a grid
+ * over that frame: the lines lie where the canvas puts them, and a row that holds text is auto,
+ * so a longer title pushes what follows down instead of under it. slides.js reports what no longer
+ * fits.
+ *
+ * The slide's roles point at Lintje tokens, so the deck follows the theme, light and dark.
+ */
+:root {
+  /* The house style's white frame: the surface, which the new style keeps white in light. */
+  --slide-page: var(--color-bg-surface);
+  --slide-card: var(--color-bg-surface);
+  --slide-wash: var(--color-hero-bg);
+  --slide-blue: var(--color-hero-primary-bg);
+  --slide-on-blue: var(--color-hero-primary-text);
+  --slide-on-blue-line: color-mix(in srgb, var(--slide-on-blue) 50%, transparent);
+  --slide-on-blue-soft: color-mix(in srgb, var(--slide-on-blue) 60%, var(--slide-blue));
+  --slide-ink: var(--color-text-primary);
+  --slide-head: var(--color-accent-text);
+  --slide-sub: var(--color-accent-text);
+  --slide-muted: var(--color-text-muted);
+  --slide-line: var(--color-border-default);
+  --slide-mark: var(--color-accent-line);
+  --slide-number: var(--slide-blue);
+  --slide-on-number: var(--slide-on-blue);
+  --slide-corner: var(--radius-corner);
+  --slide-small: var(--radius-control);
+  --slide-bend: var(--radius-quote);
+
+  /* The slide's own scale, in points as PowerPoint counts them: a slide is read across a room. */
+  --slide-text-display: 700 44pt/1.1 var(--font-ui);
+  --slide-text-title: 700 32pt/1.15 var(--font-ui);
+  --slide-text-cover: 700 36pt/1.1 var(--font-ui);
+  --slide-text-lead: 700 26pt/1.3 var(--font-ui);
+  --slide-text-card: 700 24pt/1.2 var(--font-ui);
+  --slide-text-point: 700 22pt/1.2 var(--font-ui);
+  --slide-text-heading: 700 20pt/1.25 var(--font-ui);
+  --slide-text-intro: 400 20pt/1.4 var(--font-ui);
+  --slide-text-body: 400 18pt/1.35 var(--font-ui);
+  --slide-text-card-body: 400 17pt/1.4 var(--font-ui);
+  --slide-text-note: 400 16pt/1.35 var(--font-ui);
+  --slide-text-small: 400 14pt/1.4 var(--font-ui);
+  --slide-text-label: 700 14pt/1.3 var(--font-ui);
+  --slide-text-foot: 400 12pt/1.3 var(--font-ui);
+}
+
+/* In dark the slide's blue stays the primary itself, as a primary button keeps it there. Lintje's
+   hero mutes its block to a grey navy, which on a slide no longer reads as the house blue. */
+:root[data-mode='dark'] {
+  --slide-blue: var(--color-action-primary);
+  --slide-on-blue: var(--color-action-primary-text);
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-bg-inset);
+}
+
+body {
+  color: var(--slide-ink);
+  font: var(--slide-text-body);
+}
+
+.slide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  box-sizing: border-box;
+  display: none;
+  width: 1280px;
+  height: 720px;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--slide-page);
+  transform: translate(-50%, -50%) scale(var(--slide-scale, 1));
+}
+
+.slide.is-current {
+  display: grid;
+}
+
+/* Planes and blocks are the slide's ::before and ::after: under the text, over a photo. */
+.slide::before,
+.slide::after {
+  z-index: 1;
+}
+
+.slide > * {
+  z-index: 2;
+  min-width: 0;
+  margin: 0;
+}
+
+.slide :is(p, ul, ol, h2, h3, h4, figure, blockquote, figcaption) {
+  margin: 0;
+  padding: 0;
+}
+
+.slide :is(h3, h4) {
+  font: inherit;
+}
+
+/* A zero-width marker instead of none: Safari only reads a list without markers as a list. */
+.slide :is(ul, ol) {
+  list-style-type: '\200B';
+}
+
+.slide > h1 {
+  color: var(--slide-head);
+  font: var(--slide-text-title);
+}
+
+/* A photo fills its box; `data-focus="x y"` (percentages) says which part stays in view. */
+.slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* A photo field is the img itself, stretched over its grid area. It lies over the plane (the
+   slide's ::before) and under a block (its ::after), by their order in the slide. */
+.slide > img[data-field] {
+  z-index: 1;
+  align-self: stretch;
+  justify-self: stretch;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Several photos: each a figure, its caption a small label on the photo's lower left. */
+.slide [data-field='photos'] {
+  z-index: 1;
+  display: grid;
+  gap: 8px;
+}
+
+.slide [data-field='photos'] > figure {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.slide [data-field='photos'] figcaption {
+  position: absolute;
+  bottom: 16px;
+  left: 24px;
+  padding: 4px 12px;
+  color: var(--slide-ink);
+  background: var(--slide-card);
+  border-radius: var(--slide-small);
+  font: var(--slide-text-foot);
+}
+
+/* A list in running text, sized by its letter: the kussentje is half a letter, centred on the
+   first line, and a number a block one line high. The two blue layouts set their points out as
+   columns and rows of their own. */
+.slide:where(:not([data-layout='blue-three-points'], [data-layout='blue-summary'])) :is([data-field='points'], [data-field='text'], [data-field='left'], [data-field='right']) {
+  & > :is(ul, ol) {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  & ul {
+    padding-left: 1.5em;
+  }
+
+  & ol {
+    padding-left: calc(0.5em + 1lh + var(--space-3));
+  }
+
+  & li {
+    position: relative;
+  }
+
+  & li::before {
+    position: absolute;
+    top: 0;
+    box-sizing: border-box;
+  }
+
+  & ul > li::before {
+    content: '';
+    right: calc(100% + 0.5em);
+    width: 0.5em;
+    height: 0.5em;
+    margin-top: calc((1lh - 0.5em) / 2);
+    background: var(--slide-mark);
+    border-radius: var(--slide-small);
+  }
+
+  & ol > li::before {
+    content: counter(list-item);
+    right: calc(100% + var(--space-3));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1lh;
+    height: 1lh;
+    padding-inline: var(--space-1);
+    color: var(--slide-on-number);
+    background: var(--slide-number);
+    border-radius: var(--slide-small);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* One level down the marks step back: an open kussentje, a plain number. */
+  & li > ul > li::before {
+    background: transparent;
+    border: max(1px, 0.0625em) solid var(--slide-mark);
+  }
+
+  & li > ol > li::before {
+    content: counter(list-item) '.';
+    justify-content: flex-end;
+    padding-inline: 0;
+    color: var(--slide-muted);
+    background: none;
+    font-weight: 400;
+  }
+}
+
+/* A numbered square: the badge of a card, a step, a pillar or an agenda item. */
+.slide :is([data-field='cards'], [data-field='topics'], [data-field='steps'], [data-field='pillars']) > :is(ul, ol) {
+  counter-reset: slide-number;
+}
+
+.slide :is([data-field='cards'], [data-field='topics'], [data-field='steps'], [data-field='pillars']) > :is(ul, ol) > li::before {
+  counter-increment: slide-number;
+  content: counter(slide-number);
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: 0;
+  color: var(--slide-on-blue);
+  background: var(--slide-blue);
+  border-radius: var(--slide-small);
+  font: 700 20pt/1 var(--font-ui);
+}
+
+/* A card on the plane: a white block, square as Lintje frames a block. Only the small marks (a
+   bullet, a number, a label) take the small corner of a control. */
+.slide :is([data-field='cards'], [data-field='figures'], [data-field='pillars']) > ul {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  height: 100%;
+}
+
+.slide :is([data-field='cards'], [data-field='figures'], [data-field='pillars']) > ul > li {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  min-height: 0;
+  padding: var(--space-8) var(--space-6);
+  overflow: hidden;
+  background: var(--slide-card);
+}
+
+.slide :is([data-field='cards'], [data-field='pillars']) h3 {
+  font: var(--slide-text-card);
+}
+
+.slide :is([data-field='cards'], [data-field='pillars']) p {
+  font: var(--slide-text-card-body);
+}
+
+/* A label: a few words on a small block. */
+.slide [data-field='label'],
+.slide [data-field='end'],
+.slide [data-field='before'] > h3,
+.slide [data-field='after'] > h3,
+.slide mark {
+  justify-self: start;
+  align-self: start;
+  width: fit-content;
+  padding: 4px 12px;
+  border-radius: var(--slide-small);
+  font: var(--slide-text-label);
+}
+
+/* The side note beside a list: a small heading and the point it makes. */
+.slide :is([data-field='aside'], [data-field='result']) {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.slide :is([data-field='aside'], [data-field='result']) h3 {
+  color: var(--slide-sub);
+  font: var(--slide-text-label);
+}
+
+.slide :is([data-field='aside'], [data-field='result']) p {
+  color: var(--slide-head);
+  font: 700 24pt/1.28 var(--font-ui);
+}
+
+/* The foot: the deck and its chapter left, date and number right. slides.js writes it. */
+.slide__footer {
+  position: absolute;
+  inset: 684px 24px auto;
+  display: flex;
+  justify-content: space-between;
+  height: 24px;
+  align-items: center;
+  color: var(--slide-sub);
+  font: var(--slide-text-foot);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The emblem on the first and last slide, top centre, the ribbon on the slide's axis. */
+.slide__logo {
+  position: absolute;
+  top: 0;
+  left: 616px;
+}
+
+.slide [data-field='payoff'] {
+  grid-area: 1 / 1 / -1 / -1;
+  align-self: end;
+  margin: 0 24px 12px;
+  height: 24px;
+  color: var(--slide-sub);
+  font: italic var(--slide-text-foot);
+}
+
+/* A title that only the outline and a screen reader read. */
+.slide[data-layout='photo-quote'] > h1 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- Foto: a blue block on a photo, bottom left ----------------------------------------------- */
+
+.slide:is([data-layout='photo-title'], [data-layout='photo-closing-block']) {
+  grid-template-columns: 24px 48px 520px 48px 1fr 24px;
+  grid-template-rows: 120px 276px 40px auto auto auto minmax(0, 1fr) 48px;
+}
+
+.slide[data-layout='photo-quote'] {
+  grid-template-columns: 24px 48px 520px 48px 1fr 24px;
+  grid-template-rows: 24px 372px 36px auto auto minmax(0, 1fr) 48px;
+}
+
+.slide:is([data-layout='photo-title'], [data-layout='photo-closing-block']) > [data-field='photo'] {
+  grid-area: 2 / 2 / -2 / -2;
+  border-bottom-right-radius: var(--slide-corner);
+}
+
+.slide[data-layout='photo-quote'] > [data-field='photo'] {
+  grid-area: 2 / 2 / -2 / -2;
+  border-top-right-radius: var(--slide-corner);
+}
+
+.slide:is([data-layout='photo-title'], [data-layout='photo-closing-block'], [data-layout='photo-quote'])::after {
+  content: '';
+  grid-area: 3 / 2 / -2 / 5;
+  background: var(--slide-blue);
+  border-top-right-radius: var(--slide-corner);
+}
+
+.slide:is([data-layout='photo-title'], [data-layout='photo-closing-block'], [data-layout='photo-quote']) > :is(h1, [data-field]):not(img, [data-field='payoff']) {
+  grid-column: 3;
+  color: var(--slide-on-blue);
+}
+
+.slide:is([data-layout='photo-title'], [data-layout='photo-closing-block']) > h1 {
+  grid-row: 4;
+  color: var(--slide-on-blue);
+  font: var(--slide-text-cover);
+}
+
+.slide:is([data-layout='photo-title'], [data-layout='photo-closing-block']) > :is([data-field='subtitle'], [data-field='text']) {
+  grid-row: 5;
+  margin-top: 12px;
+}
+
+.slide:is([data-layout='photo-title'], [data-layout='photo-closing-block']) > :is([data-field='speaker'], [data-field='contact']) {
+  grid-row: 6;
+  margin-top: 20px;
+  font: var(--slide-text-small);
+}
+
+.slide[data-layout='photo-quote'] > [data-field='quote'] {
+  grid-row: 4;
+  font: 400 22pt/1.3 var(--font-ui);
+}
+
+.slide[data-layout='photo-quote'] > [data-field='source'] {
+  grid-row: 5;
+  margin-top: 20px;
+  font: var(--slide-text-label);
+}
+
+/* --- Foto: a white panel on a photo, bottom left ---------------------------------------------- */
+
+.slide:is([data-layout='photo-panel'], [data-layout='photo-statement'], [data-layout='photo-closing-panel']) {
+  grid-template-columns: 24px 48px 40px 480px 40px 1fr 24px;
+  grid-template-rows: 24px minmax(0, 1fr) 36px auto auto auto 36px 48px 48px;
+}
+
+.slide[data-layout='photo-closing-panel'] {
+  grid-template-rows: 120px minmax(0, 1fr) 36px auto auto auto 36px 48px 48px;
+}
+
+.slide:is([data-layout='photo-panel'], [data-layout='photo-statement'], [data-layout='photo-closing-panel']) > [data-field='photo'] {
+  grid-area: 2 / 2 / -2 / -2;
+  border-top-right-radius: var(--slide-corner);
+}
+
+.slide:is([data-layout='photo-panel'], [data-layout='photo-statement'], [data-layout='photo-closing-panel'])::after {
+  content: '';
+  grid-area: 3 / 3 / 8 / 6;
+  background: var(--slide-card);
+}
+
+.slide:is([data-layout='photo-panel'], [data-layout='photo-statement'], [data-layout='photo-closing-panel']) > :is(h1, [data-field]):not(img, [data-field='payoff']) {
+  grid-column: 4;
+}
+
+.slide:is([data-layout='photo-panel'], [data-layout='photo-closing-panel']) > h1 {
+  grid-row: 4;
+  font: 700 30pt/1.15 var(--font-ui);
+}
+
+.slide[data-layout='photo-closing-panel'] > h1 {
+  font: var(--slide-text-cover);
+}
+
+.slide:is([data-layout='photo-panel'], [data-layout='photo-closing-panel']) > [data-field='text'] {
+  grid-row: 5;
+  margin-top: 16px;
+}
+
+.slide[data-layout='photo-closing-panel'] > [data-field='contact'] {
+  grid-row: 6;
+  margin-top: 20px;
+  font: var(--slide-text-small);
+}
+
+.slide[data-layout='photo-statement'] > [data-field='label'] {
+  grid-row: 4;
+  padding: 0;
+  color: var(--slide-sub);
+  font: 700 16pt/1.3 var(--font-ui);
+}
+
+.slide[data-layout='photo-statement'] > h1 {
+  grid-row: 5;
+  margin-top: 16px;
+  font: var(--slide-text-cover);
+}
+
+/* --- Foto: the chapter column, the wall of photos --------------------------------------------- */
+
+.slide[data-layout='photo-divider'] {
+  grid-template-columns: 24px 48px 330px 33px 1fr 24px;
+  grid-template-rows: 24px 176px auto auto auto minmax(0, 1fr) 48px;
+}
+
+.slide[data-layout='photo-divider'] > [data-field='photo'] {
+  grid-area: 2 / 2 / -2 / -2;
+  border-top-right-radius: var(--slide-corner);
+}
+
+.slide[data-layout='photo-divider']::after {
+  content: '';
+  grid-area: 2 / 2 / -2 / 5;
+  background: var(--slide-blue);
+}
+
+.slide[data-layout='photo-divider'] > :is(h1, [data-field]):not(img, [data-field='number']) {
+  grid-column: 3;
+  color: var(--slide-on-blue);
+}
+
+.slide[data-layout='photo-divider'] > [data-field='number'] {
+  grid-area: 3 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  color: var(--slide-blue);
+  background: var(--slide-on-blue);
+  border-radius: var(--slide-small);
+  font: 700 26pt/1 var(--font-ui);
+}
+
+.slide[data-layout='photo-divider'] > [data-field='label'] {
+  grid-row: 3;
+  align-self: center;
+  margin-left: 72px;
+  padding: 0;
+  font: 700 16pt/1.3 var(--font-ui);
+}
+
+.slide[data-layout='photo-divider'] > h1 {
+  grid-row: 4;
+  margin-top: 20px;
+  color: var(--slide-on-blue);
+  font: 700 36pt/1.08 var(--font-ui);
+}
+
+.slide[data-layout='photo-divider'] > [data-field='text'] {
+  grid-row: 5;
+  margin-top: 20px;
+  font: var(--slide-text-intro);
+}
+
+.slide[data-layout='photo-wall'] {
+  grid-template-columns: 24px 24px auto 1fr 24px;
+  grid-template-rows: 24px 24px auto 1fr 48px;
+}
+
+.slide[data-layout='photo-wall'] > [data-field='photos'] {
+  grid-area: 2 / 2 / -2 / -2;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.slide[data-layout='photo-wall'] [data-field='photos'] > figure:nth-child(2) {
+  border-top-right-radius: var(--slide-corner);
+}
+
+.slide[data-layout='photo-wall'] > h1 {
+  grid-area: 3 / 3;
+  max-width: 560px;
+  padding: 16px 24px;
+  background: var(--slide-card);
+  font: 700 28pt/1.15 var(--font-ui);
+}
+
+/* --- Titel en slot: the blue plane with a strip of photos ------------------------------------- */
+
+.slide[data-layout='blue-closing-photo-strip'] {
+  grid-template-columns: 24px 48px 640px 1fr 84px 24px;
+  grid-template-rows: 120px 48px auto auto minmax(0, 1fr) 16px 208px 48px;
+  color: var(--slide-on-blue);
+}
+
+.slide[data-layout='blue-closing-photo-strip']::before {
+  content: '';
+  grid-area: 2 / 2 / 6 / -2;
+  margin-top: -48px;
+  background: var(--slide-blue);
+  border-top-right-radius: var(--slide-corner);
+}
+
+.slide[data-layout='blue-closing-photo-strip'] > h1 {
+  grid-area: 3 / 3;
+  color: var(--slide-on-blue);
+  font: 700 72pt/1 var(--font-ui);
+}
+
+.slide[data-layout='blue-closing-photo-strip'] > [data-field='contact'] {
+  grid-area: 3 / 4;
+  align-self: end;
+  justify-self: end;
+  text-align: right;
+  font: 400 16pt/1.5 var(--font-ui);
+}
+
+.slide[data-layout='blue-closing-photo-strip'] > [data-field='text'] {
+  grid-area: 4 / 3 / 5 / 5;
+  max-width: 760px;
+  margin-top: var(--space-8);
+  font: var(--slide-text-intro);
+}
+
+.slide[data-layout='blue-closing-photo-strip'] > [data-field='photos'] {
+  grid-area: 7 / 2 / 8 / -2;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* --- Vlak ---------------------------------------------------------------------------------- */
+
+/* The light plane inside the frame, its one large corner top right. */
+.slide:is([data-layout^='plain-'], [data-layout='half-photo-right'])::before {
+  content: '';
+  grid-area: 1 / 1 / -1 / -1;
+  margin: 24px 24px 48px;
+  background: var(--slide-wash);
+  border-top-right-radius: var(--slide-corner);
+}
+
+/* A title on top, the content from 200 px down: the plane's common grid. */
+.slide:is([data-layout='plain-three-cards'], [data-layout='plain-key-card'], [data-layout='plain-three-figures'],
+    [data-layout='plain-two-columns'], [data-layout='plain-before-after'], [data-layout='plain-schedule'],
+    [data-layout='plain-agenda']) {
+  grid-template-columns: 72px 1fr 72px;
+  grid-template-rows: 56px 128px 16px minmax(0, 1fr) 72px 48px;
+}
+
+.slide[data-layout^='plain-'] > h1 {
+  grid-area: 2 / 2;
+}
+
+.slide[data-layout='plain-three-cards'] > [data-field='cards'] {
+  grid-area: 4 / 2;
+  height: 400px;
+}
+
+.slide[data-layout='plain-three-figures'] > [data-field='figures'] {
+  grid-area: 4 / 2;
+  height: 380px;
+}
+
+.slide[data-layout='plain-three-figures'] [data-field='figures'] > ul > li {
+  gap: 0;
+  padding: var(--space-8) var(--space-8);
+}
+
+.slide[data-layout='plain-three-figures'] [data-field='figures'] strong {
+  color: var(--slide-head);
+  font: 700 72pt/1 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+}
+
+.slide[data-layout='plain-three-figures'] [data-field='figures'] h3 {
+  margin-top: 12px;
+  font: 700 20pt/1.3 var(--font-ui);
+}
+
+.slide[data-layout='plain-three-figures'] [data-field='figures'] p {
+  margin-top: auto;
+  color: var(--slide-sub);
+  font: var(--slide-text-note);
+}
+
+.slide[data-layout='plain-agenda'] {
+  grid-template-columns: 72px 773px 40px 323px 1fr;
+}
+
+.slide[data-layout='plain-agenda'] > h1 {
+  grid-column: 2 / 5;
+}
+
+.slide[data-layout='plain-agenda'] > [data-field='topics'] {
+  grid-area: 3 / 2 / 5;
+  box-sizing: border-box;
+  height: 440px;
+  padding: 16px 32px;
+  background: var(--slide-card);
+}
+
+.slide[data-layout='plain-agenda'] [data-field='topics'] > ol > li {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  column-gap: 24px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--slide-line);
+}
+
+.slide[data-layout='plain-agenda'] [data-field='topics'] > ol > li:last-child {
+  border-bottom: 0;
+}
+
+.slide[data-layout='plain-agenda'] [data-field='topics'] li > * {
+  grid-column: 2;
+}
+
+.slide[data-layout='plain-agenda'] [data-field='topics'] li::before {
+  grid-row: 1 / span 2;
+}
+
+.slide[data-layout='plain-agenda'] [data-field='topics'] h3 {
+  font: var(--slide-text-heading);
+}
+
+.slide[data-layout='plain-agenda'] [data-field='topics'] p {
+  margin-top: var(--space-1);
+  color: var(--slide-sub);
+  font: var(--slide-text-note);
+}
+
+.slide[data-layout='plain-agenda'] > [data-field='aside'] {
+  grid-area: 4 / 4;
+  margin-top: 16px;
+}
+
+.slide[data-layout='plain-divider'] {
+  grid-template-columns: 72px 1fr 72px;
+  grid-template-rows: minmax(0, 1fr) auto auto auto 48px 48px;
+}
+
+.slide[data-layout='plain-divider'] > [data-field='number'] {
+  grid-area: 1 / 2;
+  z-index: 1;
+  margin: 20px 0 0 -12px;
+  color: var(--slide-head);
+  font: 700 300pt/1 var(--font-ui);
+}
+
+.slide[data-layout='plain-divider'] > [data-field='label'] {
+  grid-area: 2 / 2;
+  padding: 0;
+  color: var(--slide-sub);
+  font: 700 16pt/1.3 var(--font-ui);
+}
+
+.slide[data-layout='plain-divider'] > h1 {
+  grid-area: 3 / 2;
+  margin-top: var(--space-3);
+  font: 700 44pt/1.08 var(--font-ui);
+}
+
+.slide[data-layout='plain-divider'] > [data-field='text'] {
+  grid-area: 4 / 2;
+  margin-top: var(--space-3);
+  font: var(--slide-text-intro);
+}
+
+.slide[data-layout='plain-key-card'] {
+  grid-template-columns: 72px 640px 72px 424px 1fr;
+}
+
+.slide[data-layout='plain-key-card'] > h1 {
+  grid-column: 2 / 5;
+}
+
+.slide[data-layout='plain-key-card'] > [data-field='points'] {
+  grid-area: 4 / 2;
+  margin-top: 8px;
+}
+
+.slide[data-layout='plain-key-card'] > [data-field='key'] {
+  grid-area: 4 / 4;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-8) var(--space-10);
+  color: var(--slide-on-blue);
+  background: var(--slide-blue);
+}
+
+.slide[data-layout='plain-key-card'] [data-field='key'] h3 {
+  font: var(--slide-text-label);
+}
+
+.slide[data-layout='plain-key-card'] [data-field='key'] p {
+  font: 700 26pt/1.25 var(--font-ui);
+}
+
+.slide[data-layout='plain-quote-portrait'] {
+  grid-template-columns: 72px 96px 24px 1fr 148px;
+  grid-template-rows: 150px auto minmax(0, 1fr) 96px 76px 48px;
+}
+
+/* The quotation mark, large and faint, as the canvas draws it. */
+.slide[data-layout='plain-quote-portrait']::after {
+  content: '“';
+  grid-area: 1 / 1 / 3 / 5;
+  margin: 30px 0 0 60px;
+  color: color-mix(in srgb, var(--slide-head) 25%, transparent);
+  font: 700 200pt/1 var(--font-ui);
+}
+
+.slide[data-layout='plain-quote-portrait'] > h1 {
+  grid-area: 2 / 2 / 3 / 5;
+  font: 400 40pt/1.22 var(--font-ui);
+}
+
+.slide[data-layout='plain-quote-portrait'] > [data-field='portrait'] {
+  grid-area: 4 / 2;
+}
+
+.slide[data-layout='plain-quote-portrait'] > [data-field='source'] {
+  grid-area: 4 / 4;
+  align-self: center;
+}
+
+.slide[data-layout='plain-quote-portrait'] [data-field='source'] h3 {
+  font: 700 18pt/1.2 var(--font-ui);
+}
+
+.slide[data-layout='plain-quote-portrait'] [data-field='source'] p {
+  margin-top: var(--space-1);
+  color: var(--slide-sub);
+  font: 400 16pt/1.2 var(--font-ui);
+}
+
+.slide[data-layout='plain-two-columns'] {
+  grid-template-columns: 72px 544px 48px 544px 1fr;
+}
+
+.slide[data-layout='plain-two-columns'] > h1 {
+  grid-column: 2 / 5;
+}
+
+.slide[data-layout='plain-two-columns'] > :is([data-field='left'], [data-field='right']) {
+  grid-row: 4;
+  box-sizing: border-box;
+  height: 420px;
+  margin-top: -4px;
+  padding: 32px;
+  background: var(--slide-card);
+}
+
+.slide[data-layout='plain-two-columns'] > [data-field='left'] {
+  grid-column: 2;
+}
+
+.slide[data-layout='plain-two-columns'] > [data-field='right'] {
+  grid-column: 4;
+  --slide-mark: var(--slide-on-blue);
+  --slide-number: var(--slide-on-blue);
+  --slide-on-number: var(--slide-blue);
+  color: var(--slide-on-blue);
+  background: var(--slide-blue);
+}
+
+.slide[data-layout='plain-two-columns'] :is([data-field='left'], [data-field='right']) h3 {
+  font: var(--slide-text-heading);
+}
+
+.slide[data-layout='plain-two-columns'] :is([data-field='left'], [data-field='right']) p {
+  margin-top: 12px;
+}
+
+.slide[data-layout='plain-two-columns'] :is([data-field='left'], [data-field='right']) > :is(ul, ol) {
+  gap: var(--space-2);
+  margin-top: 12px;
+}
+
+.slide[data-layout='plain-two-columns'] [data-field='right'] mark {
+  margin-left: 8px;
+  color: var(--slide-blue);
+  background: var(--slide-on-blue);
+  vertical-align: 3px;
+}
+
+.slide[data-layout='plain-before-after'] {
+  grid-template-columns: 72px 528px 80px 528px 1fr;
+}
+
+.slide[data-layout='plain-before-after'] > h1 {
+  grid-column: 2 / 5;
+}
+
+.slide[data-layout='plain-before-after'] > :is([data-field='before'], [data-field='after']) {
+  grid-row: 3 / 5;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  height: 456px;
+  padding: 24px 32px;
+  background: var(--slide-card);
+}
+
+.slide[data-layout='plain-before-after'] > [data-field='before'] {
+  grid-column: 2;
+  color: var(--slide-sub);
+  font: 400 14pt/1.45 var(--font-ui);
+}
+
+.slide[data-layout='plain-before-after'] > [data-field='after'] {
+  grid-column: 4;
+  font: 400 16pt/1.45 var(--font-ui);
+}
+
+.slide[data-layout='plain-before-after'] [data-field='before'] > h3 {
+  margin-bottom: var(--space-2);
+  color: var(--color-text-inverse);
+  background: var(--slide-muted);
+}
+
+.slide[data-layout='plain-before-after'] [data-field='after'] > h3 {
+  margin-bottom: var(--space-2);
+  color: var(--slide-on-blue);
+  background: var(--slide-blue);
+}
+
+.slide[data-layout='plain-before-after'] [data-field='after'] h4 {
+  color: var(--slide-head);
+  font: var(--slide-text-card);
+}
+
+.slide[data-layout='plain-schedule'] > [data-field='intro'] {
+  grid-area: 4 / 2;
+  max-width: 800px;
+  font: var(--slide-text-intro);
+}
+
+/* The timeline at a fixed height, each moment a blue block on the line. */
+.slide[data-layout='plain-schedule'] > [data-field='moments'] {
+  position: absolute;
+  top: 336px;
+  left: 124px;
+  width: 1084px;
+}
+
+.slide[data-layout='plain-schedule'] [data-field='moments']::before {
+  content: '';
+  position: absolute;
+  top: 23px;
+  left: -4px;
+  width: 980px;
+  height: 2px;
+  background: var(--slide-mark);
+}
+
+.slide[data-layout='plain-schedule'] [data-field='moments'] > ol {
+  position: relative;
+  display: grid;
+  grid-template-columns: 240px 240px 240px 184px;
+  column-gap: 60px;
+}
+
+.slide[data-layout='plain-schedule'] [data-field='moments'] li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.slide[data-layout='plain-schedule'] [data-field='moments'] strong {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 48px;
+  margin-bottom: 12px;
+  color: var(--slide-on-blue);
+  background: var(--slide-blue);
+  border-radius: var(--slide-small);
+  font: 700 16pt/1 var(--font-ui);
+}
+
+.slide[data-layout='plain-schedule'] [data-field='moments'] h3 {
+  font: 700 20pt/1.2 var(--font-ui);
+}
+
+.slide[data-layout='plain-schedule'] [data-field='moments'] p {
+  color: var(--slide-sub);
+  font: var(--slide-text-note);
+}
+
+.slide[data-layout='plain-schedule'] > [data-field='end'] {
+  position: absolute;
+  top: 342px;
+  left: 1112px;
+  padding: var(--space-1) var(--space-3);
+  color: var(--slide-head);
+  background: var(--slide-card);
+  font: 700 16pt/1.3 var(--font-ui);
+}
+
+.slide[data-layout='plain-three-pillars'] {
+  grid-template-columns: 72px 1fr 72px;
+  grid-template-rows: 56px auto minmax(0, 1fr) 72px 48px;
+}
+
+.slide[data-layout='plain-three-pillars'] > h1 {
+  color: var(--slide-sub);
+  font: 700 16pt/1.15 var(--font-ui);
+}
+
+/* The core, joined to its three pillars by a line and a bend drawn above the pillars. */
+.slide[data-layout='plain-three-pillars'] > [data-field='key'] {
+  position: absolute;
+  top: 100px;
+  left: 340px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 600px;
+  height: 120px;
+  padding: 0 32px;
+  color: var(--slide-on-blue);
+  background: var(--slide-blue);
+  text-align: center;
+  font: 700 28pt/1.2 var(--font-ui);
+}
+
+.slide[data-layout='plain-three-pillars'] > [data-field='pillars'] {
+  position: absolute;
+  top: 320px;
+  left: 72px;
+  width: 1136px;
+  height: 280px;
+}
+
+.slide[data-layout='plain-three-pillars'] [data-field='pillars']::before,
+.slide[data-layout='plain-three-pillars'] [data-field='pillars']::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  height: 50px;
+}
+
+.slide[data-layout='plain-three-pillars'] [data-field='pillars']::before {
+  left: 180px;
+  box-sizing: border-box;
+  width: 776px;
+  border: 2px solid var(--slide-mark);
+  border-bottom: 0;
+  border-radius: var(--slide-bend) var(--slide-bend) 0 0;
+}
+
+.slide[data-layout='plain-three-pillars'] [data-field='pillars']::after {
+  left: 567px;
+  width: 2px;
+  height: 100px;
+  background: var(--slide-mark);
+}
+
+.slide[data-layout='plain-three-pillars'] [data-field='pillars'] > ul {
+  gap: var(--space-6);
+}
+
+.slide[data-layout='plain-three-pillars'] [data-field='pillars'] > ul > li {
+  gap: 12px;
+  padding: var(--space-6);
+}
+
+.slide[data-layout='plain-three-pillars'] [data-field='pillars'] h3 {
+  font: var(--slide-text-point);
+}
+
+/* Steps: the plane only on the right, beside the steps on the page. */
+.slide[data-layout='plain-steps']::before {
+  margin-left: 845px;
+}
+
+.slide[data-layout='plain-steps'] {
+  grid-template-columns: 72px 730px 83px 323px 1fr;
+  grid-template-rows: 56px 120px minmax(0, 1fr) 48px;
+}
+
+.slide[data-layout='plain-steps'] > [data-field='steps'] {
+  grid-area: 3 / 2;
+}
+
+.slide[data-layout='plain-steps'] [data-field='steps'] > ol {
+  position: relative;
+  display: grid;
+  grid-auto-rows: 94px;
+  row-gap: 24px;
+}
+
+.slide[data-layout='plain-steps'] [data-field='steps'] > ol::before {
+  content: '';
+  position: absolute;
+  top: 24px;
+  bottom: 70px;
+  left: 23px;
+  width: 2px;
+  background: var(--slide-mark);
+}
+
+.slide[data-layout='plain-steps'] [data-field='steps'] li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  column-gap: 24px;
+  align-content: start;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.slide[data-layout='plain-steps'] [data-field='steps'] li > * {
+  grid-column: 2;
+}
+
+.slide[data-layout='plain-steps'] [data-field='steps'] li::before {
+  grid-row: 1 / span 2;
+}
+
+.slide[data-layout='plain-steps'] [data-field='steps'] h3 {
+  font: var(--slide-text-heading);
+}
+
+.slide[data-layout='plain-steps'] [data-field='steps'] p {
+  margin-top: var(--space-1);
+  font: var(--slide-text-note);
+}
+
+.slide[data-layout='plain-steps'] > [data-field='result'] {
+  grid-area: 3 / 4;
+  margin-top: 40px;
+}
+
+/* --- Band ---------------------------------------------------------------------------------- */
+
+/* The blue band across the top, the title in it. */
+.slide[data-layout^='band-'] {
+  grid-template-columns: 72px 1fr 72px;
+  grid-template-rows: 24px 176px 32px minmax(0, 1fr) 48px;
+}
+
+.slide[data-layout^='band-']::before {
+  content: '';
+  grid-area: 2 / 1 / 3 / -1;
+  margin-inline: 24px;
+  background: var(--slide-blue);
+  border-top-right-radius: var(--slide-corner);
+}
+
+.slide[data-layout^='band-'] > h1 {
+  grid-area: 2 / 2;
+  align-self: center;
+  color: var(--slide-on-blue);
+}
+
+.slide[data-layout='band-list'] {
+  grid-template-columns: 72px 520px 96px 520px 1fr;
+}
+
+.slide[data-layout='band-list'] > h1 {
+  grid-column: 2 / 5;
+}
+
+.slide[data-layout='band-list'] > [data-field='intro'] {
+  grid-area: 4 / 2;
+  margin-top: 16px;
+  color: var(--slide-head);
+  font: var(--slide-text-lead);
+}
+
+.slide[data-layout='band-list'] > [data-field='points'] {
+  grid-area: 4 / 4;
+  margin-top: 20px;
+}
+
+.slide[data-layout='band-list'] [data-field='points'] > ul {
+  gap: var(--space-4);
+}
+
+.slide[data-layout='band-chart'] > [data-field='chart'] {
+  grid-area: 4 / 2;
+  align-self: start;
+}
+
+/* Lintje draws a chart at a screen's size; on a slide it reads across a room. A zoomed box's
+   percentage width is already the parent's, so it stays 100 %. */
+.slide [data-field='chart'] > lintje-chart {
+  display: block;
+  zoom: 1.1;
+}
+
+.slide[data-layout='band-chart'] > [data-field='source'] {
+  grid-area: 4 / 2;
+  align-self: end;
+  margin-bottom: 8px;
+  color: var(--slide-sub);
+  font: var(--slide-text-foot);
+}
+
+.slide[data-layout='band-table'] > [data-field='table'] {
+  grid-area: 4 / 2;
+}
+
+.slide [data-field='table'] table {
+  width: 100%;
+  border-collapse: collapse;
+  font: var(--slide-text-body);
+}
+
+.slide [data-field='table'] caption {
+  padding-bottom: 12px;
+  color: var(--slide-sub);
+  caption-side: top;
+  text-align: left;
+  font: var(--slide-text-small);
+}
+
+.slide [data-field='table'] thead th {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: 2px solid var(--slide-mark);
+  text-align: left;
+  font: 700 16pt/1.35 var(--font-ui);
+}
+
+.slide [data-field='table'] tbody :is(th, td) {
+  padding: var(--space-3);
+  text-align: left;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+
+.slide [data-field='table'] tbody tr:nth-child(odd) {
+  background: var(--slide-wash);
+}
+
+/* A column of figures aligns right; slides.js marks it. */
+.slide [data-field='table'] [data-numeric] {
+  text-align: right;
+}
+
+/* --- Blauw --------------------------------------------------------------------------------- */
+
+/* The frame filled with blue: a statement, white on it. */
+.slide[data-layout^='blue-']:not([data-layout='blue-closing-photo-strip'])::before {
+  content: '';
+  grid-area: 1 / 1 / -1 / -1;
+  margin: 24px 24px 48px;
+  background: var(--slide-blue);
+  border-top-right-radius: var(--slide-corner);
+}
+
+.slide[data-layout^='blue-'] {
+  color: var(--slide-on-blue);
+}
+
+.slide[data-layout^='blue-'] > h1 {
+  color: var(--slide-on-blue);
+}
+
+.slide[data-layout='blue-three-points'] {
+  grid-template-columns: 72px 1fr 72px;
+  grid-template-rows: 96px 305px minmax(0, 1fr) 48px;
+}
+
+.slide[data-layout='blue-three-points'] > h1 {
+  grid-area: 2 / 2;
+  max-width: 1060px;
+  font: var(--slide-text-display);
+  line-height: 1.15;
+}
+
+.slide[data-layout='blue-three-points'] > [data-field='points'] {
+  grid-area: 3 / 2;
+}
+
+.slide[data-layout='blue-three-points'] [data-field='points'] > ul {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-10);
+}
+
+.slide[data-layout='blue-three-points'] [data-field='points'] > ul > li {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: 20px;
+  border-top: 2px solid var(--slide-on-blue-line);
+}
+
+.slide[data-layout='blue-three-points'] [data-field='points'] h3 {
+  font: var(--slide-text-point);
+}
+
+.slide[data-layout='blue-three-points'] [data-field='points'] p {
+  font: var(--slide-text-card-body);
+}
+
+.slide[data-layout='blue-statement'] {
+  grid-template-columns: 72px 1060px 1fr;
+  grid-template-rows: 96px auto auto minmax(0, 1fr) auto 72px 48px;
+}
+
+.slide[data-layout='blue-statement'] > [data-field='label'] {
+  grid-area: 2 / 2;
+  color: var(--slide-blue);
+  background: var(--slide-on-blue);
+}
+
+.slide[data-layout='blue-statement'] > h1 {
+  grid-area: 3 / 2;
+  margin-top: 40px;
+  font: 700 52pt/1.1 var(--font-ui);
+}
+
+.slide[data-layout='blue-statement'] > [data-field='question'] {
+  grid-area: 5 / 2;
+  font: 400 20pt/1.35 var(--font-ui);
+}
+
+.slide[data-layout='blue-summary'] {
+  grid-template-columns: 72px 1100px 1fr;
+  grid-template-rows: 56px auto minmax(0, 1fr) 48px;
+}
+
+.slide[data-layout='blue-summary'] > h1 {
+  grid-area: 2 / 2;
+  font: var(--slide-text-cover);
+}
+
+.slide[data-layout='blue-summary'] > [data-field='points'] {
+  grid-area: 3 / 2;
+  margin-top: 40px;
+}
+
+.slide[data-layout='blue-summary'] [data-field='points'] > ol {
+  counter-reset: slide-number;
+}
+
+.slide[data-layout='blue-summary'] [data-field='points'] li {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  align-items: center;
+  box-sizing: border-box;
+  height: 148px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  border-top: 1px solid var(--slide-on-blue-line);
+  font: var(--slide-text-lead);
+  line-height: 1.25;
+}
+
+.slide[data-layout='blue-summary'] [data-field='points'] li::before {
+  counter-increment: slide-number;
+  content: counter(slide-number);
+  color: var(--slide-on-blue-soft);
+  font: 700 56pt/1 var(--font-ui);
+}
+
+/* --- Half ---------------------------------------------------------------------------------- */
+
+/* Text on one half, a photo on the other. */
+.slide[data-layout^='half-'] {
+  grid-template-columns: 72px 520px 48px 616px 24px;
+  grid-template-rows: 24px 32px 176px minmax(0, 1fr) 40px 48px;
+}
+
+.slide[data-layout^='half-'] > :is(img, [data-field='photos']) {
+  grid-area: 2 / 4 / -2 / 5;
+}
+
+.slide[data-layout^='half-'] > img {
+  border-top-right-radius: var(--slide-corner);
+}
+
+.slide[data-layout^='half-'] > h1 {
+  grid-area: 3 / 2;
+}
+
+.slide[data-layout^='half-'] > :is([data-field='text'], [data-field='figure']) {
+  grid-area: 4 / 2;
+}
+
+/* The photo on the left: the same grid, mirrored. */
+.slide[data-layout='half-photo-left'] {
+  grid-template-columns: 24px 616px 48px 520px 72px;
+}
+
+.slide[data-layout='half-photo-left'] > [data-field='photo'] {
+  grid-column: 2;
+}
+
+.slide[data-layout='half-photo-left'] > h1 {
+  grid-column: 4;
+}
+
+.slide[data-layout='half-photo-left'] > [data-field='text'] {
+  grid-column: 4;
+}
+
+/* The text column beside a photo: a paragraph, then the points. */
+.slide[data-layout^='half-'] [data-field='text'] {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.slide[data-layout='half-two-photos'] > [data-field='photos'] {
+  grid-template-rows: 1fr 1fr;
+  gap: 16px;
+}
+
+.slide[data-layout='half-two-photos'] [data-field='photos'] > figure:first-child {
+  border-top-right-radius: var(--slide-corner);
+}
+
+.slide[data-layout='half-key-figure'] > h1 {
+  grid-row: 3 / 4;
+  height: 144px;
+}
+
+.slide[data-layout='half-key-figure'] [data-field='figure'] {
+  display: flex;
+  flex-direction: column;
+  margin-top: -32px;
+}
+
+.slide[data-layout='half-key-figure'] [data-field='figure'] strong {
+  color: var(--slide-head);
+  font: 700 130pt/1 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+}
+
+.slide[data-layout='half-key-figure'] [data-field='figure'] h3 {
+  margin-top: 16px;
+  font: 700 24pt/1.3 var(--font-ui);
+}
+
+.slide[data-layout='half-key-figure'] [data-field='figure'] p {
+  margin-top: 16px;
+}
+
+/* --- Presenting ---------------------------------------------------------------------------- */
+
+/* Paging controls, outside the slide and never printed. */
+/* Centred at the bottom: the footer holds its text at the left and right, so the middle is free and
+   the controls never cover the slide number. */
+.slides-nav {
+  position: fixed;
+  right: 0;
+  bottom: var(--space-4);
+  left: 0;
+  width: fit-content;
+  margin-inline: auto;
+  z-index: 3;
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-1);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  /* Its corner follows the buttons' inside it, a padding further out: round in the new style,
+     square in the classic one, as the buttons are. */
+  border-radius: calc(var(--radius-control) * 2);
+  transition: opacity var(--dur-base) var(--ease-fade);
+}
+
+/* Out of the way while presenting: it fades when the mouse rests, slower than it comes back, and
+   never while it has focus. */
+.slides-nav.is-idle:not(:focus-within) {
+  opacity: 0;
+  transition-duration: calc(var(--dur-base) * 3);
+}
+
+.slides-nav__count {
+  min-width: 5ch;
+  padding-inline: var(--space-1);
+  color: var(--color-text-secondary);
+  font: var(--text-meta);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Opening a slide: the plane fades up, a block opens from its left edge like the lint, a photo
+   settles, and the title and fields rise in reading order, the items of a list just after their
+   field. Only on screen, once the deck is ready; never in the overview, the pdf or with reduced
+   motion. The footer and emblem are the frame and stay put. Calm enough to follow from the back of
+   a room, on an even ease-out rather than one that is over in its first tenth. */
+@keyframes slide-plane {
+  from { opacity: 0; }
+}
+
+@keyframes slide-block {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0); }
+}
+
+@keyframes slide-photo {
+  from { opacity: 0; transform: scale(1.04); }
+}
+
+@keyframes slide-rise {
+  from { opacity: 0; transform: translateY(20px); }
+}
+
+@media screen and (prefers-reduced-motion: no-preference) {
+  .slide {
+    --slide-ease: cubic-bezier(0.33, 1, 0.68, 1);
+    --slide-delay: 250ms;
+  }
+
+  .slide > :nth-child(2) { --slide-delay: 370ms; }
+  .slide > :nth-child(3) { --slide-delay: 490ms; }
+  .slide > :nth-child(4) { --slide-delay: 610ms; }
+  .slide > :nth-child(n + 5) { --slide-delay: 730ms; }
+
+  .slide [data-field] > :is(ul, ol) > li { --slide-item: 0ms; }
+  .slide [data-field] > :is(ul, ol) > li:nth-child(2) { --slide-item: 120ms; }
+  .slide [data-field] > :is(ul, ol) > li:nth-child(3) { --slide-item: 240ms; }
+  .slide [data-field] > :is(ul, ol) > li:nth-child(4) { --slide-item: 360ms; }
+  .slide [data-field] > :is(ul, ol) > li:nth-child(n + 5) { --slide-item: 480ms; }
+
+  /* Until the fonts and photos are in, the slide waits, so it opens once and complete. */
+  html:not([data-slides-ready]) .slide {
+    visibility: hidden;
+  }
+
+  html[data-slides-ready]:not(.slides-overview, .slides-pdf) .slide.is-current {
+    &::before {
+      animation: slide-plane 550ms var(--ease-fade) backwards;
+    }
+
+    &::after {
+      animation: slide-block 850ms var(--slide-ease) 100ms backwards;
+    }
+
+    & > img[data-field],
+    & > [data-field='photos'] img {
+      animation: slide-photo 1200ms var(--slide-ease) backwards;
+    }
+
+    & > :is(h1, [data-field]):not(img, [data-field='photos']) {
+      animation: slide-rise 750ms var(--slide-ease) var(--slide-delay) backwards;
+    }
+
+    & [data-field] > :is(ul, ol) > li {
+      animation: slide-rise 700ms var(--slide-ease) calc(var(--slide-delay) + 150ms + var(--slide-item)) backwards;
+    }
+  }
+}
+
+/* The overview: every slide small, in a grid that scrolls; slides.js sets the columns and zoom. */
+html.slides-overview,
+.slides-overview body {
+  height: auto;
+  overflow: auto;
+}
+
+/* The gaps and the side padding are those overviewSize() in slides.js counts with. */
+.slides-overview body {
+  display: grid;
+  grid-template-columns: repeat(var(--slide-overview-columns, 4), max-content);
+  gap: calc(var(--space-10) + var(--space-6)) var(--space-8);
+  justify-content: center;
+  padding: calc(var(--space-10) + var(--space-6)) var(--space-10) var(--space-10);
+}
+
+/* Scaled, not zoomed: zoom lays the slide out again at its small size, where the browser lifts
+   tiny text to its minimum and lines break differently. A scale draws the slide as it is; the
+   negative margins give the grid its small footprint. */
+.slides-overview .slide {
+  position: relative;
+  top: auto;
+  left: auto;
+  display: grid;
+  margin: 0 calc(1280px * (var(--slide-overview-zoom, 0.2) - 1)) calc(720px * (var(--slide-overview-zoom, 0.2) - 1)) 0;
+  overflow: visible;
+  transform: scale(var(--slide-overview-zoom, 0.2));
+  transform-origin: 0 0;
+  cursor: pointer;
+}
+
+/* The other slides step back; the one you are on stays full, with a line around it and its number
+   filled. The scale shrinks every length with the slide, so a length here is divided by it. */
+.slides-overview .slide {
+  --slide-px: calc(1px / var(--slide-overview-zoom, 0.2));
+}
+
+.slides-overview .slide:not(.is-current) {
+  opacity: 0.45;
+  transition: opacity var(--dur-base) var(--ease-fade);
+}
+
+.slides-overview .slide:not(.is-current):is(:hover, :focus-visible) {
+  opacity: 1;
+}
+
+/* The line hugs the slide; the focus ring stands outside it, so a focused current slide shows both. */
+.slides-overview .slide.is-current {
+  box-shadow: 0 0 0 calc(4 * var(--slide-px)) var(--color-accent-line);
+}
+
+.slides-overview .slide:focus-visible {
+  outline: calc(3 * var(--slide-px)) solid var(--color-focus);
+  outline-offset: calc(8 * var(--slide-px));
+}
+
+.slide__number {
+  display: none;
+}
+
+.slides-overview .slide__number {
+  position: absolute;
+  bottom: calc(100% + 8 * var(--slide-px));
+  left: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: calc(28 * var(--slide-px));
+  height: calc(28 * var(--slide-px));
+  padding-inline: calc(6 * var(--slide-px));
+  box-sizing: border-box;
+  color: var(--color-text-secondary);
+  font: 700 calc(14 * var(--slide-px)) / 1 var(--font-ui);
+  font-variant-numeric: tabular-nums;
+}
+
+.slides-overview .slide.is-current .slide__number {
+  color: var(--color-action-primary-text);
+  background: var(--color-action-primary);
+}
+
+/* While choosing, the controls stay in view, without the ones for one slide at a time. */
+.slides-overview .slides-nav.is-idle {
+  opacity: 1;
+}
+
+.slides-overview :is(.slides-nav__previous, .slides-nav__count, .slides-nav__next) {
+  display: none;
+}
+
+/* A finding of the check, on the slide itself while `?controle` is in the URL. */
+.slide__finding {
+  position: absolute;
+  inset: auto 24px 32px;
+  z-index: 4;
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text-inverse);
+  background: var(--color-action-danger);
+  font: var(--text-ui);
+}
+
+.slide .is-error {
+  outline: 3px dashed var(--color-action-danger);
+  outline-offset: -3px;
+}
+
+/* A page is a slide, on paper and in the PDF export. */
+@page {
+  size: 1280px 720px;
+  margin: 0;
+}
+
+/* The PDF export (scripts/pdf.mjs): every slide on its own page, as the screen draws it. */
+.slides-pdf :is(.slides-nav, .slide__finding) {
+  display: none;
+}
+
+html.slides-pdf,
+.slides-pdf body {
+  height: auto;
+  overflow: visible;
+}
+
+.slides-pdf .slide {
+  position: relative;
+  top: auto;
+  left: auto;
+  display: grid;
+  transform: none;
+  break-after: page;
+}
+
+@media print {
+  .slides-nav,
+  .slide__finding {
+    display: none;
+  }
+
+  html,
+  body {
+    height: auto;
+    overflow: visible;
+  }
+
+  .slide {
+    position: relative;
+    top: auto;
+    left: auto;
+    display: grid;
+    transform: none;
+    break-after: page;
+  }
+}
