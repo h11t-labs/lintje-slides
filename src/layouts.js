@@ -17,7 +17,7 @@ const cards = (n, parts = 'elk een <li> met <h3> en <p>') => ({ kind: 'text', re
 /** @type {Record<string, Layout>} */
 export const LAYOUTS = {
   'photo-title': {
-    name: 'Foto · Titel', ground: 'Titel en slot', footer: false, logo: true, titleWords: 4,
+    name: 'Foto · Titel', ground: 'Titel en slot', footer: false, logo: true, titleWords: 10,
     use: 'De eerste dia: de titel in het blauwe blok op een foto.',
     fields: {
       photo: photo,

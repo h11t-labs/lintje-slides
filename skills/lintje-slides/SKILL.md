@@ -59,8 +59,9 @@ het deck.
 ```
 
 - **`<title>`** is de naam van de presentatie; hij staat links in de voet van elke dia. Hij mag
-  langer zijn dan de titel op de titeldia, die op één regel moet passen: hoogstens ongeveer
-  twintig tekens. De rest gaat in de ondertitel, die zelf hoogstens twee regels is.
+  langer zijn dan de titel op de titeldia. Daar groeit het blauwe blok omhoog over de foto, tot
+  drie regels titel (hoogstens tien woorden); de ondertitel is hoogstens twee regels. Een korte
+  titel laat meer van de foto zien.
 - **`data-date`** op `<body>` staat rechts in de voet, vóór het dianummer. De titeldia toont hem
   niet vanzelf: zet hem daar in het veld `speaker`.
 - **`data-theme`** is de organisatie: `rijksoverheid`, `marechaussee`, `defensie`, `landmacht`,
@@ -196,8 +197,8 @@ noemt de eenheid langs de as. Meer soorten en velden staan in Lintje, dat het pa
 | melding | wat je doet |
 |---|---|
 | `… past niet: maak de tekst korter` | Schrap woorden, of kies een indeling met meer ruimte. Een kleinere letter bestaat niet. |
-| `… valt van de dia: de titel of de tekst erboven is te lang` | De genoemde velden zijn weggeduwd, ook een foto: maak de titel of het tekstveld erboven korter. Op de titeldia is het bijna altijd de titel. |
-| `de titel heeft hoogstens … woorden` | Kort de titel in; op de titeldia gaat de rest in de ondertitel. |
+| `… valt van de dia: de titel of de tekst erboven is te lang` | De genoemde velden zijn weggeduwd, ook een foto: maak de titel of het tekstveld erboven korter. |
+| `de titel heeft hoogstens … woorden` | Kort de titel in; op de titeldia kan een deel naar de ondertitel. |
 | `veld "…" ontbreekt` | Voeg het veld toe; `layouts.md` zegt wat erin hoort. |
 | `"…" is geen veld van …` | De melding noemt de velden die wel bestaan. |
 | `heeft 3 punten, nu 4` | Neem het aantal punten dat de indeling heeft, of kies een andere. |
