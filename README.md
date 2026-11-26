@@ -6,7 +6,8 @@ vult die met tekst, foto's en data. De opmaak komt uit de indeling, dus een mens
 maken dezelfde dia's. Je presenteert in de browser en exporteert naar pdf, in licht en donker.
 
 De dertig indelingen staan in vijf ondergronden: foto, licht vlak, blauwe band, vol blauw en half
-beeld. [`AGENTS.md`](AGENTS.md) beschrijft ze allemaal, met hun velden.
+beeld. De skill in [`skills/lintje-slides/`](skills/lintje-slides/SKILL.md) beschrijft ze
+allemaal, met hun velden en wanneer je welke kiest.
 [`examples/begrijpelijke-brieven.html`](examples/begrijpelijke-brieven.html) gebruikt elke
 indeling één keer.
 
@@ -46,10 +47,22 @@ Een dia ziet er zo uit:
 </section>
 ```
 
-De voet, het embleem, de nummers en de opsommingstekens zet `slides.js` erbij. In `AGENTS.md`
-staat welke velden elke indeling heeft en wat erin mag. Geef je agent die handleiding mee,
-bijvoorbeeld met een regel in je eigen `AGENTS.md`: "Lees voor een presentatie
-`node_modules/@lintje/slides/AGENTS.md`."
+De voet, het embleem, de nummers en de opsommingstekens zet `slides.js` erbij.
+
+## Met een AI-assistent
+
+Het pakket brengt een skill mee, `skills/lintje-slides/`: de werkwijze van verhaallijn tot pdf,
+welke indeling bij welke boodschap past, goed gebruik van tekst, cijfers, grafieken en foto's, en
+de velden van elke indeling. Kopieer de map naar de skills-map van je assistent; bij Claude Code
+is dat `.claude/skills/` van je project:
+
+```bash
+mkdir -p .claude/skills && cp -R node_modules/@lintje/slides/skills/lintje-slides .claude/skills/
+```
+
+Vraag daarna gewoon om een presentatie. Een assistent zonder skills wijs je de weg met een regel
+in je eigen `AGENTS.md`: "Volg voor een presentatie
+`node_modules/@lintje/slides/skills/lintje-slides/SKILL.md`."
 
 ## Bekijken, controleren en exporteren
 
@@ -96,7 +109,7 @@ op dezelfde dia uit.
 
 ## Hoe het werkt
 
-- `src/layouts.js` noemt de indelingen en hun velden. De controle en de catalogus in `AGENTS.md`
+- `src/layouts.js` noemt de indelingen en hun velden. De controle en de catalogus van de skill
   lezen hem.
 - `src/slides.css` tekent de indelingen. Elke indeling is een grid over het vlak van 1280 × 720:
   een langere titel duwt wat eronder staat omlaag. De kleuren zijn tokens van Lintje, dus het
