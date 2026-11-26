@@ -89,7 +89,7 @@ deck zelf noemt (`data-theme`), en `?check` toont de meldingen van de controle o
 ## Presenteren
 
 Onderaan in het midden staan knoppen voor de vorige dia, de volgende dia, licht of donker, het
-overzicht van alle dia's en volledig scherm. Ze faden in als je de muis beweegt en faden langzamer
+overzicht van alle dia's, de sprekersweergave, volledig scherm en de sneltoetsen. Ze faden in als je de muis beweegt en faden langzamer
 uit als hij even stilstaat, als je bladert met de toetsen of een clicker, en kort nadat het deck
 opent. In de pdf staan ze nooit. In het overzicht staan alle dia's klein naast elkaar, met hun
 nummer; de dia waar je bent heeft een rand en de rest is gedimd: klik er een aan, of kies met de
@@ -104,6 +104,7 @@ pijltoetsen en Enter. Met het toetsenbord gaat het zo:
 | O | overzicht van alle dia's; Escape of O sluit het |
 | D | licht of donker; de keuze komt in de URL (`?mode=dark`) |
 | S | de sprekersweergave, in een tweede venster |
+| ? | de sneltoetsen, in een venster; ook onder de knop met het vraagteken |
 
 Het nummer van de dia staat in de URL (`#3`). Herlaad je de pagina of deel je de link, dan kom je
 op dezelfde dia uit.
@@ -113,8 +114,8 @@ op dezelfde dia uit.
 Een dia kan notities hebben, in een `<aside data-notes>` in de dia. De zaal ziet ze nooit: niet
 op de dia, in het overzicht of in de pdf. S of de knop Sprekersweergave opent de
 sprekersweergave in een tweede venster (`?presenter`): de dia die de zaal ziet, de volgende, de
-notities, de klok en de verstreken tijd, met een knop die de tijd op nul zet. De twee vensters
-lopen gelijk, ook licht of donker, wat je ook gebruikt om te bladeren. Zet de sprekersweergave op
+notities eronder, de tijd en de duur, met een knop die de duur op nul zet. Het overzicht (O)
+werkt er ook. De twee vensters lopen gelijk, ook licht of donker, wat je ook gebruikt om te bladeren. Zet de sprekersweergave op
 je eigen scherm, sleep het zaalvenster naar de beamer en druk daar op F.
 
 ## Hoe het werkt

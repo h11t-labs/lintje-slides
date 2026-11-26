@@ -214,7 +214,7 @@ In de browser zet `?check` achter de URL de meldingen op de dia zelf.
 ## Presenteren
 
 `npx lintje-slides serve` geeft de link naar elk deck. Bladeren gaat met de pijltjes, spatie of
-een clicker; F is volledig scherm, O het overzicht van alle dia's, D licht of donker en S de
+een clicker; F is volledig scherm, O het overzicht van alle dia's, D licht of donker, S de
 sprekersweergave: een tweede venster met de huidige en de volgende dia, de notities en de tijd, dat
-gelijk loopt met het deck. Het nummer van de dia staat in de URL (`#3`), dus een link opent op die
+gelijk loopt met het deck. ? toont alle sneltoetsen. Het nummer van de dia staat in de URL (`#3`), dus een link opent op die
 dia.

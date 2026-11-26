@@ -237,8 +237,33 @@ nav.innerHTML = `
   <lintje-icon-button class="slides-nav__mode" icon="functioneel-darkmode" label="Donker"></lintje-icon-button>
   <lintje-icon-button class="slides-nav__overview" icon="functioneel-tegelweergave" label="Alle dia's"></lintje-icon-button>
   <lintje-icon-button class="slides-nav__speaker" icon="functioneel-toelichting" label="Sprekersweergave"></lintje-icon-button>
-  <lintje-icon-button class="slides-nav__fullscreen" icon="multimedia-player-full-screen" label="Volledig scherm"></lintje-icon-button>`
+  <lintje-icon-button class="slides-nav__fullscreen" icon="multimedia-player-full-screen" label="Volledig scherm"></lintje-icon-button>
+  <lintje-icon-button class="slides-nav__help" icon="functioneel-vraagteken" label="Sneltoetsen"></lintje-icon-button>`
 document.body.append(nav)
+
+// The keys, for the help window; the keydown handler below does what they say.
+const shortcuts = [
+  [['→', '↓', 'Spatie'], 'Volgende dia'],
+  [['←', '↑', 'Shift Spatie'], 'Vorige dia'],
+  [['Home', 'End'], 'Eerste of laatste dia'],
+  [['O'], "Alle dia's; Escape sluit het overzicht"],
+  [['F'], 'Volledig scherm'],
+  [['D'], 'Licht of donker'],
+  [['S'], 'Sprekersweergave in een tweede venster'],
+  [['?'], 'Deze sneltoetsen'],
+]
+const helpDialog = document.createElement('lintje-dialog')
+helpDialog.setAttribute('heading', 'Sneltoetsen')
+helpDialog.toggleAttribute('wide', true)
+helpDialog.innerHTML = `<dl class="slides-keys">${shortcuts
+  .map(([keys, what]) => `<div class="slides-keys__row"><dt class="slides-keys__keys">${keys.map((key) => `<lintje-key>${key}</lintje-key>`).join(' ')}</dt><dd class="slides-keys__what">${what}</dd></div>`)
+  .join('')}</dl>`
+helpDialog.addEventListener('lintje-close', () => (helpDialog.open = false))
+document.body.append(helpDialog)
+
+function help() {
+  helpDialog.open = true
+}
 
 const count = nav.querySelector('.slides-nav__count')
 const previous = nav.querySelector('.slides-nav__previous')
@@ -247,6 +272,7 @@ const overviewButton = nav.querySelector('.slides-nav__overview')
 const fullscreenButton = nav.querySelector('.slides-nav__fullscreen')
 const modeButton = nav.querySelector('.slides-nav__mode')
 const speakerButton = nav.querySelector('.slides-nav__speaker')
+const helpButton = nav.querySelector('.slides-nav__help')
 const root = document.documentElement
 
 function show(number) {
@@ -332,9 +358,9 @@ if (presenting) {
   speaker.className = 'slides-presenter'
   speaker.innerHTML = `
     <div class="slides-presenter__bar">
-      <span class="slides-presenter__clock"></span>
-      <span class="slides-presenter__elapsed" title="Verstreken tijd"></span>
-      <lintje-icon-button class="slides-presenter__reset" icon="functioneel-refresh" label="Tijd op nul"></lintje-icon-button>
+      <p class="slides-presenter__time"><span class="slides-presenter__label">Tijd</span><span class="slides-presenter__clock"></span></p>
+      <p class="slides-presenter__time"><span class="slides-presenter__label">Duur</span><span class="slides-presenter__elapsed"></span></p>
+      <lintje-icon-button class="slides-presenter__reset" icon="functioneel-refresh" label="Duur op nul"></lintje-icon-button>
     </div>
     <section class="slides-presenter__now" aria-label="Huidige dia">
       <p class="slides-presenter__label">Nu</p>
@@ -344,7 +370,10 @@ if (presenting) {
       <p class="slides-presenter__label">Volgende</p>
       <div class="slides-presenter__frame"><p class="slides-presenter__end">Einde van de presentatie</p></div>
     </section>
-    <section class="slides-presenter__notes" aria-label="Notities"></section>`
+    <section class="slides-presenter__notes" aria-label="Notities">
+      <p class="slides-presenter__label">Notities</p>
+      <div class="slides-presenter__text"></div>
+    </section>`
   document.body.prepend(speaker)
   speaker.querySelector('.slides-presenter__bar').append(nav)
   let start = Date.now()
@@ -368,6 +397,7 @@ if (presenting) {
 // Each slide stands at the top of its frame, scaled to fit it; the next one is a preview, out of
 // reach.
 function place() {
+  if (overviewOpen()) return
   const [nowFrame, nextFrame] = speaker.querySelectorAll('.slides-presenter__frame')
   slides.forEach((slide, index) => {
     const frame = slide.classList.contains('is-current') ? nowFrame : slide.classList.contains('is-next') ? nextFrame : null
@@ -383,7 +413,7 @@ function place() {
 
 function speak(number) {
   const notes = slides[number - 1]?.querySelector(':scope > aside[data-notes]')
-  const box = speaker.querySelector('.slides-presenter__notes')
+  const box = speaker.querySelector('.slides-presenter__text')
   if (notes?.textContent.trim()) box.replaceChildren(...notes.cloneNode(true).childNodes)
   else box.innerHTML = '<p class="slides-presenter__empty">Geen notities bij deze dia.</p>'
   speaker.querySelector('.slides-presenter__end').hidden = number < slides.length
@@ -412,6 +442,16 @@ function overviewSize() {
 
 function overview(open = !overviewOpen()) {
   root.classList.toggle('slides-overview', open)
+  // In the speaker's view the overview takes the window, with the controls at the bottom as usual.
+  if (presenting) {
+    speaker.hidden = open
+    if (open) document.body.append(nav)
+    else speaker.querySelector('.slides-presenter__bar').append(nav)
+    for (const slide of slides) {
+      slide.inert = false
+      slide.style.removeProperty('transform')
+    }
+  }
   overviewButton.icon = open ? 'functioneel-kruis' : 'functioneel-tegelweergave'
   overviewButton.label = open ? 'Overzicht sluiten' : "Alle dia's"
   slides.forEach((slide, index) => {
@@ -433,6 +473,7 @@ function overview(open = !overviewOpen()) {
     slide.scrollIntoView({ block: 'center' })
   } else {
     scrollTo(0, 0)
+    if (presenting) place()
   }
 }
 
@@ -458,12 +499,13 @@ previous.addEventListener('click', () => go(current() - 1))
 next.addEventListener('click', () => go(current() + 1))
 fullscreenButton.addEventListener('click', fullscreen)
 speakerButton.addEventListener('click', openSpeaker)
+helpButton.addEventListener('click', help)
 
 addEventListener('keydown', (event) => {
   // A key a Lintje element already handled (a chart's marks) or one typed into a field stays there.
   const target = event.composedPath()[0]
   const typing = target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
-  if (event.defaultPrevented || typing || event.metaKey || event.ctrlKey || event.altKey) return
+  if (event.defaultPrevented || typing || event.metaKey || event.ctrlKey || event.altKey || helpDialog.open) return
   // Space on a focused button presses that button.
   if (event.key === ' ' && target instanceof HTMLButtonElement) return
   if (overviewOpen()) return overviewKey(event)
@@ -478,9 +520,10 @@ addEventListener('keydown', (event) => {
     Home: () => go(1),
     End: () => go(slides.length),
     f: fullscreen,
-    o: () => presenting || overview(true),
+    o: () => overview(true),
     d: () => mode(),
     s: openSpeaker,
+    '?': help,
   }
   const action = keys[event.key]
   if (!action) return

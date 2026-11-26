@@ -1627,7 +1627,7 @@ html.slides-overview,
   grid-template:
     'bar bar' auto
     'now next' auto
-    'now notes' minmax(0, 1fr)
+    'notes notes' minmax(0, 1fr)
     / minmax(0, 3fr) minmax(0, 2fr);
   gap: var(--space-6);
   padding: var(--space-6);
@@ -1647,18 +1647,24 @@ html.slides-overview,
 .slides-presenter__bar {
   grid-area: bar;
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-4);
   align-items: center;
+}
+
+.slides-presenter[hidden] {
+  display: none;
+}
+
+.slides-presenter__time {
+  display: grid;
+  margin: 0;
 }
 
 .slides-presenter__clock,
 .slides-presenter__elapsed {
   font: var(--text-section);
   font-variant-numeric: tabular-nums;
-}
-
-.slides-presenter__elapsed {
-  color: var(--color-text-secondary);
 }
 
 /* The controls stand in the bar, always in view, without the overview. */
@@ -1671,12 +1677,13 @@ html.slides-overview,
   opacity: 1;
 }
 
-.slides-presenter :is(.slides-nav__overview, .slides-nav__speaker) {
+.slides-speaking .slides-nav__speaker {
   display: none;
 }
 
 .slides-presenter__now,
-.slides-presenter__next {
+.slides-presenter__next,
+.slides-presenter__notes {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   gap: var(--space-2);
@@ -1697,11 +1704,17 @@ html.slides-overview,
   min-height: 0;
 }
 
-.slides-presenter__next .slides-presenter__frame {
+/* Both slides keep their shape; a low window caps the slide now, so the notes keep room. */
+.slides-presenter__frame {
   aspect-ratio: 16 / 9;
 }
 
+.slides-presenter__now .slides-presenter__frame {
+  max-height: 55vh;
+}
+
 .slides-presenter__label {
+  display: block;
   margin: 0;
   color: var(--color-text-secondary);
   font: var(--text-meta);
@@ -1722,12 +1735,18 @@ html.slides-overview,
   display: none;
 }
 
-/* Read at arm's length, while talking: larger than body text, and it scrolls when it is long. */
+/* Read at arm's length, while talking: larger than body text, in a frame of its own across the
+   width, and it scrolls when it is long. */
 .slides-presenter__notes {
   grid-area: notes;
+}
+
+.slides-presenter__text {
   overflow: auto;
-  padding-block-start: var(--space-4);
-  border-top: 1px solid var(--color-border-default);
+  padding: var(--space-4) var(--space-5);
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius);
   font: var(--text-h2);
   font-weight: 400;
   line-height: 1.5;
@@ -1750,15 +1769,39 @@ html.slides-overview,
   .slides-presenter {
     grid-template:
       'bar' auto
-      'now' minmax(0, 2fr)
-      'notes' minmax(0, 2fr)
-      'next' minmax(0, 1fr)
+      'now' auto
+      'notes' minmax(0, 1fr)
+      'next' auto
       / minmax(0, 1fr);
   }
 
   .slides-presenter__next .slides-presenter__frame {
-    aspect-ratio: auto;
+    max-height: 20vh;
   }
+}
+
+/* The help window: each key, then what it does. */
+.slides-keys {
+  display: grid;
+  margin: 0;
+}
+
+.slides-keys__row {
+  display: grid;
+  grid-template-columns: 12rem 1fr;
+  gap: var(--space-4);
+  padding-block: var(--space-2);
+  border-bottom: 1px solid var(--color-border-default);
+}
+
+.slides-keys__row:last-child {
+  border-bottom: 0;
+}
+
+.slides-keys__keys,
+.slides-keys__what {
+  margin: 0;
+  font: var(--text-ui);
 }
 
 /* A finding of the check, on the slide itself while `?controle` is in the URL. */
