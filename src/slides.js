@@ -18,6 +18,8 @@ if (params.has('theme')) document.documentElement.dataset.theme = params.get('th
 
 const slides = [...document.querySelectorAll('.slide')]
 const deck = document.title
+// The chapter each slide stands in, as its footer says it; the speaker's view names it too.
+const chapters = []
 const organisations = {
   rijksoverheid: 'Rijksoverheid',
   marechaussee: 'Koninklijke Marechaussee',
@@ -38,6 +40,7 @@ function build() {
   slides.forEach((slide, index) => {
     const layout = LAYOUTS[slide.dataset.layout]
     if (slide.dataset.chapter !== undefined) chapter = slide.dataset.chapter
+    chapters[index] = chapter
     for (const img of slide.querySelectorAll('img[data-focus]')) {
       const [x, y] = img.dataset.focus.split(/\s+/)
       img.style.objectPosition = `${x}% ${y ?? 50}%`
@@ -301,14 +304,14 @@ const nav = document.createElement('nav')
 nav.className = 'slides-nav'
 nav.setAttribute('aria-label', "Dia's")
 nav.innerHTML = `
-  <lintje-icon-button class="slides-nav__previous" icon="functioneel-delta-naar-links" label="Vorige dia"></lintje-icon-button>
+  <lintje-icon-button variant="flat" class="slides-nav__previous" icon="functioneel-delta-naar-links" label="Vorige dia"></lintje-icon-button>
   <span class="slides-nav__count" aria-live="polite"></span>
-  <lintje-icon-button class="slides-nav__next" icon="functioneel-delta-naar-rechts" label="Volgende dia"></lintje-icon-button>
-  <lintje-icon-button class="slides-nav__mode" icon="functioneel-darkmode" label="Donker"></lintje-icon-button>
-  <lintje-icon-button class="slides-nav__overview" icon="functioneel-tegelweergave" label="Alle dia's"></lintje-icon-button>
-  <lintje-icon-button class="slides-nav__speaker" icon="functioneel-externe-link" label="Sprekersweergave"></lintje-icon-button>
-  <lintje-icon-button class="slides-nav__fullscreen" icon="multimedia-player-full-screen" label="Volledig scherm"></lintje-icon-button>
-  <lintje-icon-button class="slides-nav__help" icon="functioneel-vraagteken" label="Sneltoetsen"></lintje-icon-button>`
+  <lintje-icon-button variant="flat" class="slides-nav__next" icon="functioneel-delta-naar-rechts" label="Volgende dia"></lintje-icon-button>
+  <lintje-icon-button variant="flat" class="slides-nav__mode" icon="functioneel-darkmode" label="Donker"></lintje-icon-button>
+  <lintje-icon-button variant="flat" class="slides-nav__overview" icon="functioneel-tegelweergave" label="Alle dia's"></lintje-icon-button>
+  <lintje-icon-button variant="flat" class="slides-nav__speaker" icon="activiteiten-presentatie-voor-groep" label="Sprekersweergave"></lintje-icon-button>
+  <lintje-icon-button variant="flat" class="slides-nav__fullscreen" icon="multimedia-player-full-screen" label="Volledig scherm"></lintje-icon-button>
+  <lintje-icon-button variant="flat" class="slides-nav__help" icon="functioneel-vraagteken" label="Sneltoetsen"></lintje-icon-button>`
 document.body.append(nav)
 
 // The keys, for the help window; the keydown handler below does what they say.
@@ -371,7 +374,11 @@ function go(number) {
 
 function scale() {
   const factor = Math.min(innerWidth / width, innerHeight / height)
-  document.documentElement.style.setProperty('--slide-scale', String(factor))
+  const style = document.documentElement.style
+  style.setProperty('--slide-scale', String(factor))
+  // The controls stand in the margin under the slide when it holds them, else in the footer's band.
+  const margin = (innerHeight - height * factor) / 2
+  style.setProperty('--slides-nav-bottom', `${margin >= 44 ? (margin - 42) / 2 : margin + 3 * factor}px`)
 }
 
 function fullscreen() {
@@ -455,11 +462,23 @@ if (presenting) {
   speaker.className = 'slides-presenter'
   speaker.innerHTML = `
     <div class="slides-presenter__bar">
-      <h1 class="slides-presenter__title"></h1>
-      <p class="slides-presenter__time"><span class="slides-presenter__label">Tijd</span><span class="slides-presenter__clock"></span></p>
-      <div class="slides-presenter__time slides-presenter__time--duration">
-        <span class="slides-presenter__label">Duur</span><span class="slides-presenter__elapsed"></span>
-        <lintje-icon-button class="slides-presenter__reset" icon="functioneel-refresh" label="Duur op nul"></lintje-icon-button>
+      <div class="slides-presenter__deck">
+        <h1 class="slides-presenter__title"></h1>
+        <p class="slides-presenter__position" aria-live="polite"></p>
+      </div>
+      <div class="slides-presenter__times">
+        <p class="slides-presenter__label slides-presenter__label--duration">
+          Duur
+          <button class="slides-presenter__reset" type="button" aria-label="Reset: de duur opnieuw laten beginnen">Reset</button>
+        </p>
+        <p class="slides-presenter__elapsed"></p>
+        <p class="slides-presenter__label">Tijd</p>
+        <p class="slides-presenter__clock"></p>
+      </div>
+      <div class="slides-presenter__controls">
+        <lintje-button class="slides-presenter__previous" variant="secondary" icon="functioneel-delta-naar-links">Vorige</lintje-button>
+        <lintje-button class="slides-presenter__forward" variant="primary" icon-right="functioneel-delta-naar-rechts">Volgende</lintje-button>
+        <lintje-button class="slides-presenter__close" variant="secondary" size="compact" icon="functioneel-kruis">Sluiten</lintje-button>
       </div>
     </div>
     <section class="slides-presenter__now" aria-label="Huidige dia">
@@ -467,8 +486,11 @@ if (presenting) {
       <div class="slides-presenter__frame"></div>
     </section>
     <section class="slides-presenter__next" aria-label="Volgende dia">
-      <p class="slides-presenter__label">Volgende</p>
       <div class="slides-presenter__frame"><p class="slides-presenter__end">Einde van de presentatie</p></div>
+      <div class="slides-presenter__upcoming">
+        <p class="slides-presenter__label">Volgende</p>
+        <p class="slides-presenter__upcoming-title"></p>
+      </div>
     </section>
     <section class="slides-presenter__notes" aria-label="Notities">
       <p class="slides-presenter__label">Notities</p>
@@ -476,7 +498,17 @@ if (presenting) {
     </section>`
   speaker.querySelector('.slides-presenter__title').textContent = deck
   document.body.prepend(speaker)
-  speaker.querySelector('.slides-presenter__bar').append(nav)
+  // The view's own buttons page and close; the icons for the rest stand between them.
+  speaker.querySelector('.slides-presenter__close').before(nav)
+  speaker.querySelector('.slides-presenter__previous').addEventListener('click', () => go(current() - 1))
+  speaker.querySelector('.slides-presenter__forward').addEventListener('click', () => go(current() + 1))
+  speaker.querySelector('.slides-presenter__close').addEventListener('click', () => {
+    close()
+    // A window the speaker opened by its address cannot close itself: it becomes the deck again.
+    const url = new URL(location.href)
+    url.searchParams.delete('presenter')
+    setTimeout(() => location.replace(url), 150)
+  })
   let start = Date.now()
   const clock = speaker.querySelector('.slides-presenter__clock')
   const elapsed = speaker.querySelector('.slides-presenter__elapsed')
@@ -516,6 +548,7 @@ function place() {
   nowFrame.setAttribute('aria-owns', now.id)
   const nextTitle = slides.find((slide) => slide.classList.contains('is-next'))?.querySelector(':scope > h1')?.textContent.trim()
   nextFrame.closest('section').setAttribute('aria-label', nextTitle ? `Volgende dia: ${nextTitle}` : 'Volgende dia')
+  speaker.querySelector('.slides-presenter__upcoming-title').textContent = nextTitle ?? ''
 }
 
 function speak(number) {
@@ -524,6 +557,10 @@ function speak(number) {
   if (notes?.textContent.trim()) box.replaceChildren(...notes.cloneNode(true).childNodes)
   else box.innerHTML = '<p class="slides-presenter__empty">Geen notities bij deze dia.</p>'
   speaker.querySelector('.slides-presenter__end').hidden = number < slides.length
+  speaker.querySelector('.slides-presenter__upcoming').hidden = number === slides.length
+  speaker.querySelector('.slides-presenter__position').textContent = [`Dia ${number} van ${slides.length}`, chapters[number - 1]].filter(Boolean).join(' · ')
+  speaker.querySelector('.slides-presenter__previous').disabled = number === 1
+  speaker.querySelector('.slides-presenter__forward').disabled = number === slides.length
   place()
 }
 
@@ -553,7 +590,7 @@ function overview(open = !overviewOpen()) {
   if (presenting) {
     speaker.hidden = open
     if (open) document.body.append(nav)
-    else speaker.querySelector('.slides-presenter__bar').append(nav)
+    else speaker.querySelector('.slides-presenter__close').before(nav)
     for (const slide of slides) {
       slide.inert = false
       slide.style.removeProperty('transform')
@@ -678,8 +715,8 @@ function overviewKey(event) {
   slide.scrollIntoView({ block: 'nearest' })
 }
 
-// The controls stand over the slide's corner: they show when the mouse moves, and go after a
-// short rest, also right after the deck opens.
+// The controls show when the mouse moves, and go after a short rest, also right after the deck
+// opens.
 let idle
 function rest() {
   clearTimeout(idle)
