@@ -1,13 +1,9 @@
-// Writes each deck to out/<deck>.html: one file that opens with a double click, without a server
-// or a network. The stylesheet, the fonts, the photos and the icons go in as text or data URLs.
-// The deck's module script stays inline; every module it reaches goes in an import map as a data
-// URL, under a bare name made of the path it is served at (bundle/node_modules/…), with its own
-// imports pointed at those names: a data URL has no folder to resolve a path in. Only what the deck loads goes in: the Lintje
-// tags slides.js imports, and the chart's when the deck has one. Like the PDF, a deck with
-// findings gets no bundle.
+// Writes each deck to out/<deck>.html: one file that opens without a server or a network. Modules
+// go in an import map as data URLs under bare names (bundle/node_modules/…), because a data URL
+// has no folder to resolve a path in. Like the PDF, a deck with findings gets no bundle.
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
-import { dirname, extname, resolve } from 'node:path'
+import { dirname, extname, relative, resolve } from 'node:path'
 import { eachDeck, printFindings } from './browser.mjs'
 import { fileFor, root, types, urlFor } from './server.mjs'
 
@@ -23,7 +19,15 @@ export async function bundle(decks) {
     // changes its icon, the speaker's view.
     const loaded = await page.evaluate(() => performance.getEntriesByType('resource').map((entry) => entry.name))
     const file = `out/${name}.html`
-    await writeFile(file, await inline(resolve(root, deck), loaded))
+    let html
+    try {
+      html = await inline(resolve(root, deck), loaded)
+    } catch (error) {
+      const reason = error.code === 'ENOENT' ? `${relative(root, error.path)} bestaat niet` : error.message
+      console.log(`${deck}: geen bundel, ${reason}`)
+      return false
+    }
+    await writeFile(file, html)
     console.log(file)
     return true
   })
@@ -33,12 +37,14 @@ async function inline(deckFile, loaded) {
   let html = await readFile(deckFile, 'utf8')
   const icons = new Set(loaded.map((url) => /\/dist-icons\/([^/?]+)\.svg/.exec(url)?.[1]).filter(Boolean).map(decodeURIComponent))
 
-  html = await replace(html, /<link\b[^>]*rel="stylesheet"[^>]*>/g, async (tag) => {
+  html = await replace(html, /<link\b[^>]*\srel=["']?stylesheet\b[^>]*>/g, async (tag) => {
     const href = attribute(tag, 'href')
     return href ? `<style>\n${await css(locate(href, deckFile))}\n</style>` : tag
   })
 
-  html = await replace(html, /<script\b[^>]*type="module"[^>]*src="([^"]+)"[^>]*><\/script>/g, async (_, src) => {
+  html = await replace(html, /<script\b[^>]*>\s*<\/script>/g, async (tag) => {
+    const src = attribute(tag, 'src')
+    if (!src || attribute(tag, 'type') !== 'module') return tag
     const scriptFile = locate(src, deckFile)
     const source = await readFile(scriptFile, 'utf8')
     for (const [, icon] of source.matchAll(/['"`]((?:functioneel|multimedia)-[a-z0-9-]+)['"`]/g)) icons.add(icon)
@@ -56,7 +62,7 @@ async function inline(deckFile, loaded) {
     if (!src || /^(data:|https?:)/.test(src)) return tag
     const file = locate(src, deckFile)
     if (!photos.includes(file)) photos.push(file)
-    return tag.replace(/\bsrc="[^"]*"/, `data-bundle-photo="${photos.indexOf(file)}"`)
+    return tag.replace(/\ssrc=(["'])[^"']*\1/, ` data-bundle-photo="${photos.indexOf(file)}"`)
   })
   const photoUrls = await Promise.all(photos.map(dataUrl))
   const setPhotos = `<script>
@@ -84,7 +90,14 @@ async function inline(deckFile, loaded) {
   }
 }
 </script>`
-  return html.replace(/<head[^>]*>/, (head) => `${head}\n${script(shim, false)}`)
+  html = html.replace(/<head[^>]*>/, (head) => `${head}\n${script(shim, false)}`)
+
+  // What the bundle could not take in would fail over file:// without a word, so it is an error.
+  const outside = [...html.matchAll(/<(?:link|script|img|source)\b[^>]*>/g)]
+    .map(([tag]) => attribute(tag, 'href') ?? attribute(tag, 'src'))
+    .filter((url) => url && !/^(data:|https?:|#)/.test(url))
+  if (outside.length) throw new Error(`verwijst nog naar ${[...new Set(outside)].join(', ')}`)
+  return html
 }
 
 // A module's imports, static and dynamic, as minified code writes them too: from"./x.js".
@@ -142,7 +155,7 @@ function script(source, escape = true) {
 }
 
 function attribute(tag, name) {
-  return new RegExp(`\\b${name}="([^"]*)"`).exec(tag)?.[1]
+  return new RegExp(`\\s${name}=(["'])(.*?)\\1`).exec(tag)?.[2]
 }
 
 async function replace(text, pattern, replacer) {
