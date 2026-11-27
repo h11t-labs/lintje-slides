@@ -200,9 +200,11 @@ noemt de eenheid langs de as. Meer soorten en velden staan in Lintje, dat het pa
 
 | melding | wat je doet |
 |---|---|
-| `… past niet: maak de tekst korter` | Schrap woorden, of kies een indeling met meer ruimte. Een kleinere letter bestaat niet. |
-| `… valt van de dia: de titel of de tekst erboven is te lang` | De genoemde velden zijn weggeduwd, ook een foto: maak de titel of het tekstveld erboven korter. Op de titeldia is het bijna altijd de titel. |
-| `de titel heeft hoogstens … woorden` | Kort de titel in; op de titeldia gaat de rest in de ondertitel. |
+| `veld "…" past niet: maak de tekst korter` | Schrap woorden, of kies een indeling met meer ruimte. Een kleinere letter bestaat niet. Met `(67 woorden, hoogstens 60)` erachter weet je hoeveel eraf moet. |
+| `3 punten in "…" passen niet: maak de tekst korter` | Hetzelfde, voor de punten in dat veld die te lang zijn. |
+| `veld "…": hoogstens … woorden, nu …` | De tekst past nog, maar is langer dan de indeling toelaat: schrap woorden. |
+| `… vallen van de dia: de titel of de tekst erboven is te lang` | De genoemde velden en punten zijn weggeduwd, ook een foto: maak de titel of het tekstveld erboven korter. Op de titeldia is het bijna altijd de titel. |
+| `de titel heeft hoogstens … woorden, nu …` | Kort de titel in; op de titeldia gaat de rest in de ondertitel. Met `: … vallen van de dia` erachter duwt de titel die velden weg: ze passen weer als de titel korter is. |
 | `veld "…" ontbreekt` | Voeg het veld toe; `layouts.md` zegt wat erin hoort. |
 | `"…" is geen veld van …` | De melding noemt de velden die wel bestaan. |
 | `heeft 3 punten, nu 4` | Neem het aantal punten dat de indeling heeft, of kies een andere. |
@@ -211,7 +213,8 @@ noemt de eenheid langs de as. Meer soorten en velden staan in Lintje, dat het pa
 | `de foto … laadt niet` | Zet het bestand op het pad uit `src`, of zet het grijze vlak op zijn plek. |
 | `fout in de pagina, vaak de data van een grafiek …` | Vergelijk de JSON van elke grafiek met [Grafieken](#grafieken); de melding noemt geen dia. |
 
-In de browser zet `?check` achter de URL de meldingen op de dia zelf.
+Eén oorzaak geeft één melding: wat de woorden, het vak en de punten van een veld zeggen, staat
+in één regel. In de browser zet `?check` achter de URL dezelfde meldingen op de dia zelf.
 
 ## Presenteren
 

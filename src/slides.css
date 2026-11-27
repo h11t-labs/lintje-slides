@@ -1848,20 +1848,20 @@ html.slides-overview,
   font: var(--text-ui);
 }
 
-/* A finding of the check, on the slide itself while `?controle` is in the URL. */
-.slide__finding {
+/* The findings of the check, on the slide itself while `?check` is in the URL: over the footer
+   and side by side, so they cover as little of the slide's own text as they can. */
+.slide__findings {
   position: absolute;
-  inset: auto 24px 32px;
+  inset: auto 24px 8px;
   z-index: 4;
-  padding: var(--space-2) var(--space-3);
-  color: var(--color-text-inverse);
-  background: var(--color-action-danger);
-  font: var(--text-ui);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: var(--space-2);
 }
 
 .slide .is-error {
-  outline: 3px dashed var(--color-action-danger);
-  outline-offset: -3px;
+  outline: 2px solid var(--color-error-line);
+  outline-offset: -2px;
 }
 
 /* A page is a slide, on paper and in the PDF export. */
@@ -1871,7 +1871,7 @@ html.slides-overview,
 }
 
 /* The PDF export (scripts/pdf.mjs): every slide on its own page, as the screen draws it. */
-.slides-pdf :is(.slides-nav, .slide__finding) {
+.slides-pdf :is(.slides-nav, .slide__findings) {
   display: none;
 }
 
@@ -1893,7 +1893,7 @@ html.slides-pdf,
 @media print {
   .slides-nav,
   .slides-presenter,
-  .slide__finding {
+  .slide__findings {
     display: none;
   }
 
