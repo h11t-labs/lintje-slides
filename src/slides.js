@@ -124,7 +124,6 @@ function checkField(name, field, element, report) {
       }
     }
   }
-  if (field.words && words(element) > field.words) report(`${where}: hoogstens ${field.words} woorden, nu ${words(element)}`)
 }
 
 function checkImage(img, where, report) {
@@ -143,7 +142,7 @@ function overflows(element) {
 
 function checkSlide(slide) {
   const findings = []
-  const report = (message, element) => findings.push({ message, element })
+  const report = (message, ...elements) => findings.push({ message, elements: elements.filter(Boolean) })
   const name = slide.dataset.layout
   const layout = LAYOUTS[name]
   if (!layout) {
@@ -153,9 +152,17 @@ function checkSlide(slide) {
   const titles = slide.querySelectorAll(':scope > h1')
   if (titles.length !== 1) report('de dia heeft precies één <h1> als titel')
   else if (!titles[0].textContent.trim()) report('de titel is leeg')
-  else if (words(titles[0]) > (layout.titleWords ?? 16)) {
-    report(`de titel heeft hoogstens ${layout.titleWords ?? 16} woorden, nu ${words(titles[0])}`, titles[0])
+
+  // One cause, one finding: what the words, the box and the points of a field say comes together.
+  const fits = new Map()
+  const fit = (owner) => {
+    if (!fits.has(owner)) fits.set(owner, { tight: false, tightPoints: [], off: false, offPoints: [] })
+    return fits.get(owner)
   }
+  const limit = (owner, max) => {
+    if (max && words(owner) > max) fit(owner).words = [words(owner), max]
+  }
+  if (titles.length === 1) limit(titles[0], layout.titleWords ?? 16)
 
   const seen = new Set()
   for (const child of slide.children) {
@@ -173,6 +180,7 @@ function checkSlide(slide) {
       continue
     }
     checkField(field, spec, element, (message) => report(message, element))
+    limit(element, spec.words)
   }
   // Styling belongs to the layout: a style or class in the content is a way around it.
   for (const node of slide.querySelectorAll('[style], [class]')) {
@@ -190,10 +198,47 @@ function checkSlide(slide) {
     const field = element.closest('[data-field]')?.dataset.field
     if (field && !layout.fields[field]) continue
     const box = element.getBoundingClientRect()
-    const label = element.matches('h1') ? 'de titel' : element.dataset.field ? `veld "${element.dataset.field}"` : `een punt in "${field}"`
-    if (overflows(element) || box.right > frame.right - 24 * scale + 1) report(`${label} past niet: maak de tekst korter`, element)
+    const owner = element.matches('h1, [data-field]') ? element : element.closest('[data-field]')
+    const state = fit(owner)
+    if (overflows(element) || box.right > frame.right - 24 * scale + 1) {
+      if (element === owner) state.tight = true
+      else state.tightPoints.push(element)
+    }
     // A field that fits its own box but stands past the frame was pushed there by the text above it.
-    else if (box.bottom > bottom + 1) report(`${label} valt van de dia: de titel of de tekst erboven is te lang`, element)
+    else if (box.bottom > bottom + 1) {
+      if (element === owner) state.off = true
+      else state.offPoints.push(element)
+    }
+  }
+  const pushed = []
+  let long = null
+  for (const [owner, state] of fits) {
+    const title = owner.matches('h1')
+    const label = title ? 'de titel' : `veld "${owner.dataset.field}"`
+    const points = (list, one, more) =>
+      list.length === 1 ? `een punt in "${owner.dataset.field}" ${one}` : `${list.length} punten in "${owner.dataset.field}" ${more}`
+    const count = state.words ? `${state.words[0]} woorden, hoogstens ${state.words[1]}` : ''
+    if (state.tight || (state.words && state.tightPoints.length)) {
+      report(`${label} past niet${count && ` (${count})`}: maak de tekst korter`, owner, ...state.tightPoints)
+    } else if (state.tightPoints.length) {
+      report(`${points(state.tightPoints, 'past', 'passen')} niet: maak de tekst korter`, ...state.tightPoints)
+    } else {
+      if (state.words && title) long = { message: `de titel heeft hoogstens ${state.words[1]} woorden, nu ${state.words[0]}`, owner }
+      else if (state.words) report(`${label}: hoogstens ${state.words[1]} woorden, nu ${state.words[0]}`, owner)
+      if (state.off && owner === long?.owner) continue
+      if (state.off) pushed.push({ name: label, elements: [owner] })
+      else if (state.offPoints.length) pushed.push({ name: points(state.offPoints, '', '').trim(), elements: state.offPoints, many: state.offPoints.length > 1 })
+    }
+  }
+  // Everything past the frame was pushed there by the same text above it: a title past its words
+  // is that text.
+  const tail = long ? '' : ': de titel of de tekst erboven is te lang'
+  if (long && !pushed.length) report(long.message, long.owner)
+  if (pushed.length) {
+    const names = pushed.map(({ name }) => name)
+    const list = names.length > 1 ? `${names.slice(0, -1).join(', ')} en ${names.at(-1)}` : names[0]
+    const verb = pushed.length > 1 || pushed[0].many ? 'vallen' : 'valt'
+    report(`${long ? `${long.message}: ` : ''}${list} ${verb} van de dia${tail}`, long?.owner, ...pushed.flatMap(({ elements }) => elements))
   }
   if (!wasCurrent) slide.classList.remove('is-current')
   return findings
@@ -202,15 +247,15 @@ function checkSlide(slide) {
 /** Every finding in the deck, for scripts/check.mjs and the console. */
 export function check() {
   return slides.flatMap((slide, index) =>
-    checkSlide(slide).map(({ message, element }) => ({ slide: index + 1, layout: slide.dataset.layout ?? '', message, element })),
+    checkSlide(slide).map(({ message, elements }) => ({ slide: index + 1, layout: slide.dataset.layout ?? '', message, elements })),
   )
 }
 
 function showFindings(findings) {
   for (const old of document.querySelectorAll('.slide__findings')) old.remove()
   for (const old of document.querySelectorAll('.is-error')) old.classList.remove('is-error')
-  for (const { slide, message, element } of findings) {
-    element?.classList.add('is-error')
+  for (const { slide, message, elements } of findings) {
+    for (const element of elements) element.classList.add('is-error')
     const host = slides[slide - 1]
     let list = host.querySelector('.slide__findings')
     if (!list) {
