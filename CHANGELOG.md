@@ -11,6 +11,13 @@ of verwijderen is een brekende wijziging en begint hier met **Brekend:**.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-27
+
+### Toegevoegd
+
+- `lintje-slides bundle`: een deck als één los HTML-bestand dat zonder server of internet opent, met alleen de onderdelen van Lintje die het deck tekent. (#11)
+- Notities bij een dia (`<aside data-notes>`) en een sprekersweergave in een tweede venster (`S`): de huidige en de volgende dia, de notities, de tijd en de duur, synchroon met het deck. Een knop en de toets `?` tonen de sneltoetsen. (#10)
+
 ## [0.1.0] - 2026-11-26
 
 ### Toegevoegd
@@ -20,5 +27,6 @@ of verwijderen is een brekende wijziging en begint hier met **Brekend:**.
 - Presenteren in de browser: bladeren met toetsen en een clicker, knoppen die infaden als de muis beweegt, een overzicht van alle dia's (toets O), licht of donker (toets D, `?mode=dark`) en volledig scherm. Elke dia komt rustig in beeld, behalve bij minder beweging.
 - Een skill voor een AI-assistent, `skills/lintje-slides/`: de werkwijze van verhaallijn tot pdf, welke indeling bij welke boodschap past, goed gebruik van tekst, cijfers, grafieken en foto's, de vorm van een grafiek per soort en de velden van elke indeling. (#1)
 
-[unreleased]: https://github.com/h11t-labs/lintje-slides/compare/v0.1.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje-slides/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/h11t-labs/lintje-slides/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/h11t-labs/lintje-slides/releases/tag/v0.1.0
