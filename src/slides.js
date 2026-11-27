@@ -1,6 +1,7 @@
 // Turns a page of <section class="slide" data-layout="…"> into a deck. Only the Lintje tags a
 // deck draws load, each from its own file, so a bundle carries no more than that.
 import { setIconSource } from '/node_modules/lintje/dist-elements/core.js'
+import '/node_modules/lintje/dist-elements/tag/announcement.js'
 import '/node_modules/lintje/dist-elements/tag/dialog.js'
 import '/node_modules/lintje/dist-elements/tag/icon-button.js'
 import '/node_modules/lintje/dist-elements/tag/key.js'
@@ -158,7 +159,7 @@ function checkSlide(slide) {
 
   const seen = new Set()
   for (const child of slide.children) {
-    if (child.matches('h1, aside[data-notes], .slide__footer, .slide__logo, .slide__finding, .slide__number')) continue
+    if (child.matches('h1, aside[data-notes], .slide__footer, .slide__logo, .slide__findings, .slide__number')) continue
     const field = child.dataset.field
     if (field === undefined) report(`<${child.tagName.toLowerCase()}> zonder data-field: alles op een dia staat in een veld`, child)
     else if (!layout.fields[field]) report(`"${field}" is geen veld van ${name}; wel: ${Object.keys(layout.fields).join(', ')}`, child)
@@ -175,7 +176,7 @@ function checkSlide(slide) {
   }
   // Styling belongs to the layout: a style or class in the content is a way around it.
   for (const node of slide.querySelectorAll('[style], [class]')) {
-    if (node.closest('lintje-chart, aside[data-notes], .slide__footer, .slide__logo, .slide__finding, .slide__number') || node === slide) continue
+    if (node.closest('lintje-chart, aside[data-notes], .slide__footer, .slide__logo, .slide__findings, .slide__number') || node === slide) continue
     if (node.hasAttribute('class')) report(`<${node.tagName.toLowerCase()} class>: de opmaak komt uit de indeling`, node)
     if (node.hasAttribute('style') && !node.matches('img[data-focus]')) report(`<${node.tagName.toLowerCase()} style>: de opmaak komt uit de indeling`, node)
   }
@@ -206,17 +207,20 @@ export function check() {
 }
 
 function showFindings(findings) {
-  for (const old of document.querySelectorAll('.slide__finding')) old.remove()
+  for (const old of document.querySelectorAll('.slide__findings')) old.remove()
   for (const old of document.querySelectorAll('.is-error')) old.classList.remove('is-error')
   for (const { slide, message, element } of findings) {
     element?.classList.add('is-error')
-    const note = document.createElement('p')
-    note.className = 'slide__finding'
-    note.textContent = message
     const host = slides[slide - 1]
-    const previous = host.querySelectorAll('.slide__finding').length
-    note.style.bottom = `${32 + previous * 40}px`
-    host.append(note)
+    let list = host.querySelector('.slide__findings')
+    if (!list) {
+      list = document.createElement('div')
+      list.className = 'slide__findings'
+      host.append(list)
+    }
+    const note = document.createElement('lintje-announcement')
+    note.data = { kind: 'error', text: message, dismissible: false }
+    list.append(note)
   }
 }
 
