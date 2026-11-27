@@ -11,6 +11,7 @@
     "type": "git",
     "url": "git+https://github.com/h11t-labs/lintje-slides.git"
   },
+  "homepage": "https://h11t-labs.github.io/lintje-slides/",
   "bin": {
     "lintje-slides": "bin/lintje-slides.mjs"
   },

@@ -5,6 +5,10 @@ Rijkshuisstijl. Een presentatie is één HTML-bestand. Elke dia kiest een van de
 vult die met tekst, foto's en data. De opmaak komt uit de indeling, dus een mens en een agent
 maken dezelfde dia's. Je presenteert in de browser en exporteert naar pdf, in licht en donker.
 
+**[Bekijk het voorbeelddeck](https://h11t-labs.github.io/lintje-slides/)**, ook
+[in donker](https://h11t-labs.github.io/lintje-slides/?mode=dark). Blader met de pijltjes; O is
+het overzicht, D wisselt licht en donker, F is volledig scherm en S de sprekersweergave.
+
 De dertig indelingen staan in vijf ondergronden: foto, licht vlak, blauwe band, vol blauw en half
 beeld. De skill in [`skills/lintje-slides/`](skills/lintje-slides/SKILL.md) beschrijft ze
 allemaal, met hun velden en wanneer je welke kiest.
