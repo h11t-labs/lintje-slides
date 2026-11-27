@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="nl" data-theme="rijksoverheid" data-style-version="new" data-mode="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Sneller beslissen</title>
+    <link rel="stylesheet" href="/node_modules/@lintje/slides/src/slides.css" />
+    <script type="module" src="/node_modules/@lintje/slides/src/slides.js"></script>
+  </head>
+  <body data-date="27 november 2026">
+    <!-- A short deck with the chart kinds beyond the first example's. The figures are fictitious; the photos are CC0, from Wikimedia Commons (photos/SOURCES.md). -->
+
+    <section class="slide" data-layout="photo-title">
+      <img data-field="photo" src="photos/den-haag-skyline.jpg" alt="De skyline van Den Haag" />
+      <h1>Sneller beslissen</h1>
+      <p data-field="subtitle">Een jaar met de nieuwe werkwijze voor aanvragen: waar we staan</p>
+      <div data-field="speaker">
+        <p>Spreker: [Naam spreker]</p>
+        <p>27 november 2026</p>
+      </div>
+      <p data-field="payoff">[Pay-off van de organisatie]</p>
+    </section>
+
+    <section class="slide" data-layout="plain-divider" data-chapter="1 Snelheid">
+      <span data-field="number">1</span>
+      <span data-field="label">Hoofdstuk 1</span>
+      <h1>Hoe snel we beslissen</h1>
+      <p data-field="text">De doorlooptijd per regio, tegen vorig jaar en tegen het doel</p>
+    </section>
+
+    <section class="slide" data-layout="band-chart">
+      <h1>Elke regio beslist sneller dan vorig jaar</h1>
+      <div data-field="chart">
+        <lintje-chart>
+          <script type="application/json">
+            {
+              "expandable": false,
+              "download": false,
+              "description": "Doorlooptijd van een aanvraag in dagen per regio, 2025 en 2026: noord 34 en 22, oost 31 en 24, zuid 38 en 27, west 41 en 26, midden 29 en 21.",
+              "chart": {
+                "kind": "dumbbell",
+                "fromLabel": "2025",
+                "toLabel": "2026",
+                "color": "sky-blue",
+                "unit": "dagen",
+                "rows": [
+                  { "label": "Noord", "from": 34, "to": 22 },
+                  { "label": "Oost", "from": 31, "to": 24 },
+                  { "label": "Zuid", "from": 38, "to": 27 },
+                  { "label": "West", "from": 41, "to": 26 },
+                  { "label": "Midden", "from": 29, "to": 21 }
+                ]
+              }
+            }
+          </script>
+        </lintje-chart>
+      </div>
+      <p data-field="source">Bron: zaakregistratie, januari–oktober 2025 en 2026 (fictieve cijfers)</p>
+    </section>
+
+    <section class="slide" data-layout="band-chart">
+      <h1>Twee van de vijf regio's halen het doel al</h1>
+      <div data-field="chart">
+        <lintje-chart>
+          <script type="application/json">
+            {
+              "expandable": false,
+              "download": false,
+              "description": "Deel van de aanvragen binnen 21 dagen beslist, per regio, tegen een doel van 80 procent: midden 86, noord 82, oost 74, west 68, zuid 61.",
+              "chart": {
+                "kind": "target-progress",
+                "target": 80,
+                "rows": [
+                  { "label": "Midden", "value": 86 },
+                  { "label": "Noord", "value": 82 },
+                  { "label": "Oost", "value": 74 },
+                  { "label": "West", "value": 68 },
+                  { "label": "Zuid", "value": 61 }
+                ]
+              }
+            }
+          </script>
+        </lintje-chart>
+      </div>
+      <p data-field="source">Bron: zaakregistratie, oktober 2026 (fictieve cijfers)</p>
+    </section>
+
+    <section class="slide" data-layout="blue-statement">
+      <span data-field="label">Stelling</span>
+      <h1>Over een jaar haalt elke regio het doel van 80 procent.</h1>
+      <p data-field="question">Steek uw hand op als u het eens bent.</p>
+    </section>
+
+    <section class="slide" data-layout="band-chart">
+      <h1>Bijna elke aanvraag is binnen de termijn klaar</h1>
+      <div data-field="chart">
+        <lintje-chart>
+          <script type="application/json">
+            {
+              "expandable": false,
+              "download": false,
+              "description": "Aanvragen naar doorlooptijd in dagen: 0 tot 7 dagen 820, 7 tot 14 dagen 1.150, 14 tot 21 dagen 640, 21 tot 28 dagen 310, 28 dagen of meer 120. De mediaan is 11 dagen, de termijn 28 dagen.",
+              "chart": {
+                "kind": "histogram",
+                "label": "Aanvragen",
+                "axisTitle": "Aanvragen",
+                "xTitle": "Doorlooptijd in dagen",
+                "unit": "dagen",
+                "median": 11,
+                "threshold": 28,
+                "thresholdLabel": "termijn 28 dagen",
+                "bins": [
+                  { "from": 0, "to": 7, "count": 820 },
+                  { "from": 7, "to": 14, "count": 1150 },
+                  { "from": 14, "to": 21, "count": 640 },
+                  { "from": 21, "to": 28, "count": 310 },
+                  { "from": 28, "to": null, "count": 120 }
+                ]
+              }
+            }
+          </script>
+        </lintje-chart>
+      </div>
+      <p data-field="source">Bron: zaakregistratie, januari–oktober 2026 (fictieve cijfers)</p>
+    </section>
+
+    <section class="slide" data-layout="plain-divider" data-chapter="2 Het werk">
+      <span data-field="number">2</span>
+      <span data-field="label">Hoofdstuk 2</span>
+      <h1>Waar het werk vandaan komt</h1>
+      <p data-field="text">Hoeveel aanvragen er binnenkomen, langs welke weg, en wanneer mensen bellen</p>
+    </section>
+
+    <section class="slide" data-layout="band-chart">
+      <h1>Het werk groeit, en het groeit online</h1>
+      <div data-field="chart">
+        <lintje-chart>
+          <script type="application/json">
+            {
+              "expandable": false,
+              "download": false,
+              "description": "Aanvragen per maand naar kanaal, januari tot en met augustus: online van 500 naar 950, papier van 400 naar 260, loket van 150 naar 100.",
+              "chart": {
+                "kind": "stacked-area",
+                "labels": ["Jan", "Feb", "Mrt", "Apr", "Mei", "Jun", "Jul", "Aug"],
+                "color": "sky-blue",
+                "axisTitle": "Aanvragen per maand",
+                "series": [
+                  { "label": "Online", "values": [500, 560, 620, 700, 760, 820, 880, 950] },
+                  { "label": "Papier", "values": [400, 380, 360, 340, 320, 300, 280, 260] },
+                  { "label": "Loket", "values": [150, 140, 140, 130, 120, 120, 110, 100] }
+                ]
+              }
+            }
+          </script>
+        </lintje-chart>
+      </div>
+      <p data-field="source">Bron: aanvraagregistratie 2026 (fictieve cijfers)</p>
+    </section>
+
+    <section class="slide" data-layout="band-chart">
+      <h1>Op maandagochtend bellen de meeste mensen</h1>
+      <div data-field="chart">
+        <lintje-chart>
+          <script type="application/json">
+            {
+              "expandable": false,
+              "download": false,
+              "description": "Telefoontjes over een aanvraag per dag en dagdeel. Ochtend: maandag 420, dinsdag 310, woensdag 290, donderdag 300, vrijdag 260. Middag: 300, 250, 240, 230, 180. Avond: 120, 100, 90, 95, 60.",
+              "chart": {
+                "kind": "heatmap",
+                "columnLabels": ["Ma", "Di", "Wo", "Do", "Vr"],
+                "rowLabels": ["Ochtend", "Middag", "Avond"],
+                "unit": "telefoontjes",
+                "values": [
+                  [420, 310, 290, 300, 260],
+                  [300, 250, 240, 230, 180],
+                  [120, 100, 90, 95, 60]
+                ]
+              }
+            }
+          </script>
+        </lintje-chart>
+      </div>
+      <p data-field="source">Bron: telefoonregistratie, september 2026 (fictieve cijfers)</p>
+    </section>
+
+    <section class="slide" data-layout="blue-statement">
+      <span data-field="label">Stelling</span>
+      <h1>Op maandagochtend horen er meer mensen aan de telefoon.</h1>
+      <p data-field="question">Steek uw hand op als u het eens bent.</p>
+    </section>
+
+    <section class="slide" data-layout="band-chart">
+      <h1>Een groter loket beslist niet sneller</h1>
+      <div data-field="chart">
+        <lintje-chart>
+          <script type="application/json">
+            {
+              "expandable": false,
+              "download": false,
+              "description": "Aanvragen per week en doorlooptijd in dagen per loket, tegen een norm van 20 dagen: A 120 en 18, B 340 en 22, C 210 en 15, D 480 en 19, E 90 en 24, F 260 en 21, G 400 en 16. Grote en kleine loketten zijn even snel.",
+              "chart": {
+                "kind": "scatter",
+                "axisTitle": "Doorlooptijd in dagen",
+                "xTitle": "Aanvragen per week",
+                "threshold": 20,
+                "thresholdLabel": "Norm",
+                "dataLabels": ["Loket A", "Loket B", "Loket C", "Loket D", "Loket E", "Loket F", "Loket G"],
+                "series": [
+                  {
+                    "label": "Loket",
+                    "color": "sky-blue",
+                    "points": [
+                      { "label": "Loket A", "x": 120, "y": 18 },
+                      { "label": "Loket B", "x": 340, "y": 22 },
+                      { "label": "Loket C", "x": 210, "y": 15 },
+                      { "label": "Loket D", "x": 480, "y": 19 },
+                      { "label": "Loket E", "x": 90, "y": 24 },
+                      { "label": "Loket F", "x": 260, "y": 21 },
+                      { "label": "Loket G", "x": 400, "y": 16 }
+                    ]
+                  }
+                ]
+              }
+            }
+          </script>
+        </lintje-chart>
+      </div>
+      <p data-field="source">Bron: zaakregistratie, oktober 2026 (fictieve cijfers)</p>
+    </section>
+
+    <section class="slide" data-layout="blue-summary" data-chapter="">
+      <h1>Wat u onthoudt</h1>
+      <div data-field="points">
+        <ol>
+          <li>Elke regio beslist sneller, gemiddeld elf dagen.</li>
+          <li>Drie regio's halen het doel nog niet; daar helpen we als eerste.</li>
+          <li>Het werk groeit online, dus daar zetten we de meeste mensen.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="slide" data-layout="photo-closing-block">
+      <img data-field="photo" src="photos/binnenhof.jpg" alt="Het Binnenhof in Den Haag, bij avond" />
+      <h1>Bedankt</h1>
+      <p data-field="text">Vragen over de nieuwe werkwijze voor aanvragen? Neem contact op.</p>
+      <div data-field="contact">
+        <p>[Naam spreker]</p>
+        <p>[e-mailadres]</p>
+      </div>
+      <p data-field="payoff">[Pay-off van de organisatie]</p>
+    </section>
+  </body>
+</html>
