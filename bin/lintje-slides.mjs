@@ -6,6 +6,8 @@ const usage = `lintje-slides <opdracht> [deck.html …]
   serve                  start de server op poort 5190 (PORT=… voor een andere)
   check [--images]       meldt wat niet past; --images zet een png per dia in out/<deck>/
   pdf                    zet elk deck zonder meldingen in out/<deck>.pdf
+  bundle                 zet elk deck zonder meldingen in één bestand, out/<deck>.html, dat
+                         zonder server en zonder internet opent
 
   --dark                 bij check en pdf: de donkere versie
   Zonder deck: elk .html-bestand met <section class="slide"> in deze map en eronder.`
@@ -13,7 +15,7 @@ const usage = `lintje-slides <opdracht> [deck.html …]
 const [command, ...rest] = process.argv.slice(2)
 const flags = new Set(rest.filter((arg) => arg.startsWith('--')))
 const names = rest.filter((arg) => !arg.startsWith('--'))
-const known = { serve: [], check: ['--images', '--dark'], pdf: ['--dark'] }
+const known = { serve: [], check: ['--images', '--dark'], pdf: ['--dark'], bundle: [] }
 
 if (!(command in known)) {
   console.log(usage)
@@ -35,6 +37,9 @@ if (command === 'serve') {
   const { check } = await import('../cli/check.mjs')
   const ok = await check(decks, { images: flags.has('--images'), dark: flags.has('--dark') })
   process.exit(ok ? 0 : 1)
+} else if (command === 'bundle') {
+  const { bundle } = await import('../cli/bundle.mjs')
+  process.exit((await bundle(decks)) ? 0 : 1)
 } else {
   const { pdf } = await import('../cli/pdf.mjs')
   const ok = await pdf(decks, { dark: flags.has('--dark') })

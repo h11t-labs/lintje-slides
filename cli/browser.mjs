@@ -19,9 +19,13 @@ export async function eachDeck(decks, { dark }, visit) {
     process.exit(1)
   })
   let failed = false
+  // Two decks of the same name in different folders get their folder in the name of what they write.
+  const names = decks.map((deck) => basename(deck).replace(/\.html$/, ''))
+  const unique = (deck, index) =>
+    names.filter((name) => name === names[index]).length > 1 ? deck.replace(/\.html$/, '').replace(/^\.?\//, '').replaceAll('/', '-') : names[index]
   try {
-    for (const deck of decks) {
-      const name = basename(deck).replace(/\.html$/, '')
+    for (const [index, deck] of decks.entries()) {
+      const name = unique(deck, index)
       // Reduced motion: slides and charts stand at once, as the check and the PDF want them.
       const page = await browser.newPage({ viewport: { width: 1280, height: 720 }, reducedMotion: 'reduce' })
       page.on('pageerror', (error) => {
