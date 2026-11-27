@@ -26,10 +26,13 @@ het deck.
    hoeveelheid tekst die past. Houd per dia de sectie van zijn indeling, in jouw volgorde, en
    vervang de inhoud. De foto's van het voorbeeld komen niet mee: geef elke `<img>` meteen een
    eigen foto of het grijze vlak (zie [Goed gebruik](#goed-gebruik), zonder foto's).
-4. **Controleer.** Draai `npx lintje-slides check decks/<naam>.html --images` en los elke melding
-   op ([Meldingen](#meldingen)). Bekijk daarna elke png in `out/<naam>/`: de controle ziet niet
-   of een dia half leeg is, een titel op één woord breekt of een foto het verkeerde deel toont.
-   Klaar als de controle `in orde` zegt **en** je elke png hebt bekeken en goedgekeurd.
+4. **Controleer.** Draai `npx lintje-slides check decks/<naam>.html --sheet --images` en los elke
+   melding op ([Meldingen](#meldingen)). Bekijk daarna eerst `out/<naam>-overzicht.png`, alle
+   dia's genummerd naast elkaar: de volgorde, en of de ondergronden wisselen zoals
+   [Goed gebruik](#goed-gebruik) vraagt. Dan elke png in `out/<naam>/`, voor de details: de
+   controle ziet niet of een dia half leeg is, een titel op één woord breekt of een foto het
+   verkeerde deel toont. Klaar als de controle `in orde` zegt **en** je het overzicht en elke png
+   hebt bekeken en goedgekeurd.
 5. **Exporteer** met `npx lintje-slides pdf decks/<naam>.html`, en met `--dark` voor de donkere
    versie. `npx lintje-slides bundle decks/<naam>.html` maakt `out/<naam>.html`: het deck als
    één los bestand dat zonder server opent, om te mailen of mee te nemen. Bekijken in de browser
