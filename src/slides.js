@@ -9,6 +9,71 @@ import '/node_modules/lintje/dist-elements/tag/logo.js'
 import { LAYOUTS } from './layouts.js'
 
 setIconSource({ base: new URL('/node_modules/lintje/dist-icons/', location.href).href })
+
+// What each kind of chart cannot draw without, from Lintje's ChartSpec: a path that ends in `[]`
+// is a list, any other a number; `series[].values[]` is a list in every item of `series`.
+const CHART_SHAPES = {
+  line: ['labels[]', 'series[].values[]'],
+  bar: ['labels[]', 'values[]'],
+  'horizontal-bar': ['rows[].value'],
+  'target-progress': ['rows[].value'],
+  'grouped-bar': ['labels[]', 'series[].values[]'],
+  'stacked-bar': ['labels[]', 'series[].values[]'],
+  'stacked-area': ['labels[]', 'series[].values[]'],
+  pie: ['segments[].value'],
+  'dual-axis': ['labels[]', 'left.values[]', 'right.values[]'],
+  scatter: ['series[].points[]'],
+  heatmap: ['columnLabels[]', 'rowLabels[]', 'values[][]'],
+  histogram: ['bins[].from'],
+  radar: ['axes[]', 'series[].values[]', 'max'],
+  dumbbell: ['rows[]'],
+  treemap: ['parts[]'],
+  sankey: ['steps[].nodes[]', 'flows[]'],
+}
+
+/** The places in `value` that do not have the shape of `steps`, as paths into the JSON. */
+function misshapen(value, [step, ...rest], at) {
+  if (step === '[]') {
+    if (!Array.isArray(value)) return [{ at, list: true }]
+    return rest.length ? value.flatMap((item, index) => misshapen(item, rest, `${at}[${index}]`)) : []
+  }
+  const here = at ? `${at}.${step}` : step
+  if (rest.length) return misshapen(value?.[step], rest, here)
+  return typeof value?.[step] === 'number' ? [] : [{ at: here, list: false }]
+}
+
+/** What is wrong with the JSON of a chart, or nothing. */
+function chartProblem(json) {
+  let data
+  try {
+    data = JSON.parse(json)
+  } catch {
+    return 'de JSON is ongeldig'
+  }
+  const chart = data?.chart
+  if (typeof chart !== 'object' || chart === null) return 'de JSON heeft geen "chart"'
+  if (!Object.hasOwn(CHART_SHAPES, chart.kind)) return chart.kind ? `onbekende grafieksoort "${chart.kind}"` : 'de grafiek heeft geen "kind"'
+  const wrong = CHART_SHAPES[chart.kind].flatMap((path) => misshapen(chart, path.match(/[^.[\]]+|\[\]/g), ''))
+  const and = (names) => (names.length > 1 ? `${names.slice(0, -1).join(', ')} en ${names.at(-1)}` : names[0])
+  const part = (list, one, more) => {
+    const names = wrong.filter((place) => place.list === list).map((place) => `"${place.at}"`)
+    return names.length ? `${names.length > 1 ? more : one} in ${and(names)}` : ''
+  }
+  const parts = [part(true, 'een lijst', 'lijsten'), part(false, 'een getal', 'getallen')].filter(Boolean)
+  return parts.length ? `${chart.kind} heeft ${parts.join(' en ')}` : ''
+}
+
+// Lintje takes a chart's JSON out of the page as it reads it, and throws on a wrong shape at every
+// render: the check reads it first, and a chart with a wrong shape gets no data, so its finding
+// is the one message.
+const chartProblems = new WeakMap()
+for (const chart of document.querySelectorAll('lintje-chart')) {
+  const script = chart.querySelector(':scope > script[type="application/json"]')
+  const problem = script && chartProblem(script.textContent)
+  if (!problem) continue
+  chartProblems.set(chart, problem)
+  script.remove()
+}
 // A chart is the one Lintje tag a slide holds itself, and the largest: it loads only when there is one.
 if (document.querySelector('lintje-chart')) await import('/node_modules/lintje/dist-elements/tag/chart.js')
 
@@ -117,7 +182,9 @@ function checkField(name, field, element, report) {
     if (images.length !== field.count) report(`${where} heeft ${field.count} foto's, nu ${images.length}`)
     images.forEach((img) => checkImage(img, where, report))
   } else if (field.kind === 'chart') {
-    if (!element.querySelector('lintje-chart') && !element.matches('lintje-chart')) report(`${where} is een <lintje-chart>`)
+    const chart = element.matches('lintje-chart') ? element : element.querySelector('lintje-chart')
+    if (!chart) report(`${where} is een <lintje-chart>`)
+    else if (chartProblems.has(chart)) report(`${where}: ${chartProblems.get(chart)}`)
   } else if (field.kind === 'table') {
     const table = element.matches('table') ? element : element.querySelector('table')
     if (!table) report(`${where} is een <table>`)

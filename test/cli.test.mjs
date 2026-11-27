@@ -16,6 +16,17 @@ const GOOD = deck([slide('band-list', list()), slide('band-list', list())])
 const FAULTY = deck([slide('band-list', list()), slide('band-list', list(words(25))), slide('band-lijst', '')])
 const FINDINGS = ['  dia 2 (band-list): veld "intro": hoogstens 24 woorden, nu 25', '  dia 3 (band-lijst): onbekende indeling "band-lijst"']
 
+// A chart of the wrong shape is a finding on its slide, and the only message: Lintje never throws.
+describe('a chart of the wrong shape', () => {
+  it('is a finding on its slide, without an error in the page', async () => {
+    const chart = '<div data-field="chart"><lintje-chart><script type="application/json">{ "chart": { "kind": "grouped-bar", "labels": ["A"] } }</script></lintje-chart></div>'
+    const folder = await project({ 'grafiek.html': deck([slide('band-list', list()), slide('band-chart', chart)]) })
+    const { code, stdout, stderr } = await run(folder.dir, 'check')
+    await folder.remove()
+    assert.deepEqual([code, stdout.trimEnd().split('\n'), stderr], [1, ['grafiek.html: 1 melding', '  dia 2 (band-chart): veld "chart": grouped-bar heeft een lijst in "series"'], ''])
+  })
+})
+
 describe('lintje-slides', () => {
   let folder
   before(async () => {
@@ -101,6 +112,27 @@ describe('lintje-slides', () => {
       assert.deepEqual((await readdir(join(folder.dir, 'out/goed-dark'))).sort(), ['01.png', '02.png'])
     })
 
+    // A PNG says its width in bytes 16 to 20.
+    const width = async (file) => (await readFile(join(folder.dir, file))).readUInt32BE(16)
+
+    it('writes all slides in one image with --sheet, at twice the pixels', async () => {
+      const { code, stdout } = await cli('check', '--sheet', 'goed')
+      assert.deepEqual([code, lines(stdout)], [0, ["goed.html: 2 dia's, in orde", '  overzicht in out/goed-overzicht.png']])
+      assert.equal(await width('out/goed-overzicht.png'), 2 * 1280)
+    })
+
+    it('keeps the dark sheet apart', async () => {
+      const { code, stdout } = await cli('check', '--sheet', '--dark', 'goed')
+      assert.deepEqual([code, lines(stdout)], [0, ["goed.html: 2 dia's, in orde", '  overzicht in out/goed-dark-overzicht.png']])
+      assert.equal(await width('out/goed-dark-overzicht.png'), 2 * 1280)
+    })
+
+    it('writes the sheet next to the images, for a deck with findings too', async () => {
+      const { code, stdout } = await cli('check', '--images', '--sheet', 'fout')
+      assert.deepEqual([code, lines(stdout)], [1, ['fout.html: 2 meldingen', ...FINDINGS, '  beelden in out/fout/', '  overzicht in out/fout-overzicht.png']])
+      assert.equal(existsSync(join(folder.dir, 'out/fout-overzicht.png')), true)
+    })
+
     it('says so when a page does not load as a deck', { timeout: 30000 }, async () => {
       const page = await project({ 'los.html': '<!doctype html><title>Los</title><section class="slide"><h1>Titel</h1></section>' })
       const { code, stderr } = await run(page.dir, 'check')
@@ -160,7 +192,7 @@ describe('the bundle of the example deck', () => {
   before(async () => {
     folder = await project({})
     await cp(join(repo, 'examples'), folder.dir, { recursive: true })
-    const { code, stdout } = await run(folder.dir, 'bundle')
+    const { code, stdout } = await run(folder.dir, 'bundle', 'begrijpelijke-brieven.html')
     assert.deepEqual([code, stdout], [0, 'out/begrijpelijke-brieven.html\n'])
     browser = await chromium.launch()
     const context = await browser.newContext({ offline: true, viewport: { width: 1280, height: 720 }, reducedMotion: 'reduce' })

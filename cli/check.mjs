@@ -2,8 +2,9 @@
 // a PNG per slide to out/<deck>/, to look at.
 import { mkdir } from 'node:fs/promises'
 import { eachDeck, printFindings } from './browser.mjs'
+import { sheet as writeSheet } from './sheet.mjs'
 
-export function check(decks, { images = false, dark = false } = {}) {
+export function check(decks, { images = false, sheet = false, dark = false } = {}) {
   return eachDeck(decks, { dark }, async ({ deck, name, page, findings }) => {
     const count = await page.locator('.slide').count()
     if (findings.length) {
@@ -23,6 +24,7 @@ export function check(decks, { images = false, dark = false } = {}) {
       }
       console.log(`  beelden in ${dir}/`)
     }
+    if (sheet) console.log(`  overzicht in ${await writeSheet(page, name, { dark })}`)
     return findings.length === 0
   })
 }

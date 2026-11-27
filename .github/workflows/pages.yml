@@ -1,0 +1,44 @@
+# Puts the example deck online: the bundle of examples/begrijpelijke-brieven.html, one file, as
+# the index of https://h11t-labs.github.io/lintje-slides/. The bundle is only written for a deck
+# without findings, so a broken example fails here instead of going online.
+name: Pages
+
+# main only takes merged pull requests, so every push is a checked change. "Run workflow" puts
+# the current main online by hand.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# A newer push replaces the one that waits; a deployment that runs, finishes.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: node bin/lintje-slides.mjs bundle examples/begrijpelijke-brieven.html
+      - run: mkdir site && cp out/begrijpelijke-brieven.html site/index.html
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v5

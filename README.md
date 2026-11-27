@@ -5,11 +5,16 @@ Rijkshuisstijl. Een presentatie is één HTML-bestand. Elke dia kiest een van dr
 vult die met tekst, foto's en data. De opmaak komt uit de indeling, dus een mens en een agent
 maken dezelfde dia's. Je presenteert in de browser en exporteert naar pdf, in licht en donker.
 
+**[Bekijk het voorbeelddeck](https://h11t-labs.github.io/lintje-slides/)**, ook
+[in donker](https://h11t-labs.github.io/lintje-slides/?mode=dark). Blader met de pijltjes; O is
+het overzicht, D wisselt licht en donker, F is volledig scherm en S de sprekersweergave.
+
 De drieëndertig indelingen staan in vijf ondergronden: foto, licht vlak, blauwe band, vol blauw en half
 beeld. De skill in [`skills/lintje-slides/`](skills/lintje-slides/SKILL.md) beschrijft ze
 allemaal, met hun velden en wanneer je welke kiest.
 [`examples/begrijpelijke-brieven.html`](examples/begrijpelijke-brieven.html) gebruikt elke
-indeling één keer.
+indeling één keer; [`examples/sneller-beslissen.html`](examples/sneller-beslissen.html) is een
+kort deck met de andere grafieksoorten die op een dia passen.
 
 ## Installeren
 
@@ -70,6 +75,7 @@ in je eigen `AGENTS.md`: "Volg voor een presentatie
 npx lintje-slides serve                             # een server op poort 5190, met een link per deck
 npx lintje-slides check decks/brieven.html          # meldt wat niet past
 npx lintje-slides check decks/brieven.html --images # en zet een png per dia in out/brieven/
+npx lintje-slides check decks/brieven.html --sheet  # en alle dia's klein in één png, out/brieven-overzicht.png
 npx lintje-slides pdf decks/brieven.html            # out/brieven.pdf
 npx lintje-slides pdf decks/brieven.html --dark     # out/brieven-dark.pdf
 npx lintje-slides bundle decks/brieven.html         # out/brieven.html, één los bestand
@@ -90,7 +96,10 @@ ook; `lintje-slides serve` levert altijd de versie van Lintje die bij het pakket
 
 De controle meldt een onbekende indeling of veld, een `data-controls` dat geen plek is, een ontbrekend veld, te veel woorden of punten,
 een foto zonder alt-tekst, opmaak in de inhoud, en tekst die niet in zijn vak past. Een deck met
-meldingen krijgt geen pdf en geen bundel.
+meldingen krijgt geen pdf en geen bundel, maar wel zijn beelden en zijn overzicht: die zijn om
+naar te kijken. Het overzicht is dat van het deck (toets O), als één png met elke dia genummerd en
+scherp genoeg om de titels te lezen: de volgorde en de afwisseling van de ondergronden in één
+blik. Met `--dark` heten ze `out/<deck>-dark/` en `out/<deck>-dark-overzicht.png`.
 
 In de browser zet `?mode=dark` het deck donker, `?theme=defensie` probeert een ander thema dan het
 deck zelf noemt (`data-theme`), `?controls=right` zet de balk met knoppen op een andere plek dan het
