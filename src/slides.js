@@ -284,14 +284,14 @@ const nav = document.createElement('nav')
 nav.className = 'slides-nav'
 nav.setAttribute('aria-label', "Dia's")
 nav.innerHTML = `
-  <lintje-icon-button class="slides-nav__previous" icon="functioneel-delta-naar-links" label="Vorige dia"></lintje-icon-button>
+  <lintje-icon-button variant="flat" class="slides-nav__previous" icon="functioneel-delta-naar-links" label="Vorige dia"></lintje-icon-button>
   <span class="slides-nav__count" aria-live="polite"></span>
-  <lintje-icon-button class="slides-nav__next" icon="functioneel-delta-naar-rechts" label="Volgende dia"></lintje-icon-button>
-  <lintje-icon-button class="slides-nav__mode" icon="functioneel-darkmode" label="Donker"></lintje-icon-button>
-  <lintje-icon-button class="slides-nav__overview" icon="functioneel-tegelweergave" label="Alle dia's"></lintje-icon-button>
-  <lintje-icon-button class="slides-nav__speaker" icon="functioneel-externe-link" label="Sprekersweergave"></lintje-icon-button>
-  <lintje-icon-button class="slides-nav__fullscreen" icon="multimedia-player-full-screen" label="Volledig scherm"></lintje-icon-button>
-  <lintje-icon-button class="slides-nav__help" icon="functioneel-vraagteken" label="Sneltoetsen"></lintje-icon-button>`
+  <lintje-icon-button variant="flat" class="slides-nav__next" icon="functioneel-delta-naar-rechts" label="Volgende dia"></lintje-icon-button>
+  <lintje-icon-button variant="flat" class="slides-nav__mode" icon="functioneel-darkmode" label="Donker"></lintje-icon-button>
+  <lintje-icon-button variant="flat" class="slides-nav__overview" icon="functioneel-tegelweergave" label="Alle dia's"></lintje-icon-button>
+  <lintje-icon-button variant="flat" class="slides-nav__speaker" icon="activiteiten-presentatie-voor-groep" label="Sprekersweergave"></lintje-icon-button>
+  <lintje-icon-button variant="flat" class="slides-nav__fullscreen" icon="multimedia-player-full-screen" label="Volledig scherm"></lintje-icon-button>
+  <lintje-icon-button variant="flat" class="slides-nav__help" icon="functioneel-vraagteken" label="Sneltoetsen"></lintje-icon-button>`
 document.body.append(nav)
 
 // The keys, for the help window; the keydown handler below does what they say.
@@ -354,7 +354,11 @@ function go(number) {
 
 function scale() {
   const factor = Math.min(innerWidth / width, innerHeight / height)
-  document.documentElement.style.setProperty('--slide-scale', String(factor))
+  const style = document.documentElement.style
+  style.setProperty('--slide-scale', String(factor))
+  // The controls stand in the margin under the slide when it holds them, else in the footer's band.
+  const margin = (innerHeight - height * factor) / 2
+  style.setProperty('--slides-nav-bottom', `${margin >= 44 ? (margin - 42) / 2 : margin + 3 * factor}px`)
 }
 
 function fullscreen() {
@@ -661,8 +665,8 @@ function overviewKey(event) {
   slide.scrollIntoView({ block: 'nearest' })
 }
 
-// The controls stand over the slide's corner: they show when the mouse moves, and go after a
-// short rest, also right after the deck opens.
+// The controls show when the mouse moves, and go after a short rest, also right after the deck
+// opens.
 let idle
 function rest() {
   clearTimeout(idle)

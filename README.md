@@ -97,11 +97,13 @@ deck zelf noemt (`data-theme`), en `?check` toont de meldingen van de controle o
 
 ## Presenteren
 
-Onderaan in het midden staan knoppen voor de vorige dia, de volgende dia, licht of donker, het
-overzicht van alle dia's, de sprekersweergave, volledig scherm en de sneltoetsen. Ze faden in als je de muis beweegt en faden langzamer
+Onderaan in het midden staat een balk met knoppen voor de vorige dia, de volgende dia, licht of
+donker, het overzicht van alle dia's, de sprekersweergave, volledig scherm en de sneltoetsen. Is
+het scherm hoger dan de dia, dan staat de balk in de marge eronder; anders in de band van de voet,
+waar het midden vrij is. Ze faden in als je de muis beweegt en faden langzamer
 uit als hij even stilstaat, als je bladert met de toetsen of een clicker, en kort nadat het deck
 opent. In de pdf staan ze nooit. In het overzicht staan alle dia's klein naast elkaar, met hun
-nummer; de dia waar je bent heeft een rand en de rest is gedimd: klik er een aan, of kies met de
+nummer; de dia waar je bent heeft een rand en een gevuld nummer: klik er een aan, of kies met de
 pijltoetsen en Enter. Met het toetsenbord gaat het zo:
 
 | toets | wat er gebeurt |
@@ -122,8 +124,8 @@ op dezelfde dia uit.
 
 Een dia kan notities hebben, in een `<aside data-notes>` in de dia. De zaal ziet ze nooit: niet
 op de dia, in het overzicht of in de pdf. S of de knop Sprekersweergave opent de
-sprekersweergave in een tweede venster (`?presenter`): de dia die de zaal ziet, de volgende, de
-notities eronder, de tijd en de duur, met een knop die de duur op nul zet. Het overzicht (O)
+sprekersweergave in een tweede venster (`?presenter`): de dia die de zaal ziet, daarnaast de
+volgende dia met de notities eronder, de tijd en de duur, met een knop die de duur op nul zet. Het overzicht (O)
 werkt er ook. De twee vensters lopen gelijk, ook licht of donker, wat je ook gebruikt om te bladeren. Zet de sprekersweergave op
 je eigen scherm, sleep het zaalvenster naar de beamer en druk daar op F.
 
@@ -143,14 +145,15 @@ je eigen scherm, sleep het zaalvenster naar de beamer en druk daar op F.
 
 `src/slides.css` noemt alleen tokens van Lintje voor kleur, ruimte tussen tekst en de hoeken. De
 controle van Lintje (`node node_modules/lintje/dist-elements/skills/lintje/check.mjs
-node_modules/lintje/dist-elements/tokens.json src/slides.css`) meldt toch zestien plekken. Die
+node_modules/lintje/dist-elements/tokens.json src/slides.css`) meldt toch achttien plekken. Die
 staan er met reden:
 
-- **Plaatsen op het vlak**: de voet op 684 px, de witte rand van 24 en 48 px, de marge van 72 px,
+- **Plaatsen op het vlak**: de voet op 684 px, de meldingen van de controle 52 px boven de onderkant, de witte rand van 24 en 48 px, de marge van 72 px,
   het vlak van de stappen vanaf 845 px, de kolommen van de planning. Een dia is een vast vlak van
   1280 × 720 en geen pagina; deze maten komen uit het ontwerpcanvas.
 - **Uitlijning**: het grote aanhalingsteken staat waar het canvas het zet.
-- **`--slide-scale`** is de schaal waarmee `slides.js` de dia op het scherm past.
+- **`--slide-scale`** is de schaal waarmee `slides.js` de dia op het scherm past, en
+  **`--slides-nav-bottom`** de plek die het de balk met knoppen geeft: in de marge of in de voet.
 - **Het overzicht**: `slides.js` zet het aantal kolommen en de verkleining
   (`--slide-overview-columns`, `--slide-overview-zoom`), en marges van 1280 en 720 px maal die
   verkleining trekken de kleine dia's tegen elkaar.

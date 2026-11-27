@@ -1415,25 +1415,22 @@ body {
 /* --- Presenting ---------------------------------------------------------------------------- */
 
 /* Paging controls, outside the slide and never printed. */
-/* Centred at the bottom: the footer holds its text at the left and right, so the middle is free and
-   the controls never cover the slide number. */
+/* One frame of flat buttons, centred at the bottom. slides.js puts it in the margin under the slide
+   when that holds it, else in the footer's band: the footer keeps its text at the left and right,
+   so the middle is free and the controls cover nothing of the slide. */
 .slides-nav {
   position: fixed;
   right: 0;
-  bottom: var(--space-4);
+  bottom: var(--slides-nav-bottom, var(--space-4));
   left: 0;
   width: fit-content;
   margin-inline: auto;
   z-index: 3;
   display: flex;
-  gap: var(--space-2);
   align-items: center;
-  padding: var(--space-1);
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-default);
-  /* Its corner follows the buttons' inside it, a padding further out: round in the new style,
-     square in the classic one, as the buttons are. */
-  border-radius: calc(var(--radius-control) * 2);
+  border-radius: var(--radius-control);
   transition: opacity var(--dur-base) var(--ease-fade);
 }
 
@@ -1445,10 +1442,10 @@ body {
 }
 
 .slides-nav__count {
-  min-width: 5ch;
+  min-width: 7ch;
   padding-inline: var(--space-1);
-  color: var(--color-text-secondary);
-  font: var(--text-meta);
+  color: var(--color-text-primary);
+  font: var(--text-small);
   text-align: center;
   font-variant-numeric: tabular-nums;
 }
@@ -1552,19 +1549,10 @@ html.slides-overview,
   cursor: pointer;
 }
 
-/* The other slides step back; the one you are on stays full, with a line around it and its number
-   filled. The scale shrinks every length with the slide, so a length here is divided by it. */
+/* Every slide reads in full; the one you are on has a line around it and its number filled. The
+   scale shrinks every length with the slide, so a length here is divided by it. */
 .slides-overview .slide {
   --slide-px: calc(1px / var(--slide-overview-zoom, 0.2));
-}
-
-.slides-overview .slide:not(.is-current) {
-  opacity: 0.45;
-  transition: opacity var(--dur-base) var(--ease-fade);
-}
-
-.slides-overview .slide:not(.is-current):is(:hover, :focus-visible) {
-  opacity: 1;
 }
 
 /* The line hugs the slide; the focus ring stands outside it, so a focused current slide shows both. */
@@ -1603,7 +1591,12 @@ html.slides-overview,
   background: var(--color-action-primary);
 }
 
-/* While choosing, the controls stay in view, without the ones for one slide at a time. */
+/* While choosing, the controls stay in view at the window's foot, without the ones for one slide
+   at a time. */
+.slides-overview .slides-nav {
+  bottom: var(--space-4);
+}
+
 .slides-overview .slides-nav.is-idle {
   opacity: 1;
 }
@@ -1617,8 +1610,9 @@ html.slides-overview,
   display: none;
 }
 
-/* The speaker's view (`?presenter`): the slide now, the next one and the notes, with the time and
-   the controls above. slides.js lays each slide over its frame; the rest is this grid. */
+/* The speaker's view (`?presenter`): the slide now on the left, the next one and the notes in a
+   column beside it, with the time and the controls above. slides.js lays each slide over its
+   frame; the rest is this grid. */
 .slides-presenter {
   position: fixed;
   inset: 0;
@@ -1626,7 +1620,7 @@ html.slides-overview,
   grid-template:
     'bar bar' auto
     'now next' auto
-    'notes notes' minmax(0, 1fr)
+    'now notes' minmax(0, 1fr)
     / minmax(0, 3fr) minmax(0, 2fr);
   gap: var(--space-6);
   padding: var(--space-6);
@@ -1667,8 +1661,7 @@ html.slides-overview,
   margin: 0;
 }
 
-/* Setting the duration back is rare: its button shows on hover or focus of the duration, and
-   always on a touch screen, beside the time so nothing moves when it comes. */
+/* The button that sets the duration back stands beside the time. */
 .slides-presenter__time--duration {
   grid-template-columns: auto auto;
   column-gap: var(--space-2);
@@ -1679,15 +1672,9 @@ html.slides-overview,
   }
 }
 
-@media (hover: hover) {
-  .slides-presenter__reset {
-    opacity: 0;
-    transition: opacity var(--dur-base) var(--ease-fade);
-  }
-
-  .slides-presenter__time--duration:is(:hover, :focus-within) .slides-presenter__reset {
-    opacity: 1;
-  }
+/* The button is higher than the time: pulled in, so both times stand on one line. */
+.slides-presenter__reset {
+  margin-block: calc(var(--space-2) * -1);
 }
 
 .slides-presenter__clock,
@@ -1733,10 +1720,14 @@ html.slides-overview,
   min-height: 0;
 }
 
-/* Both slides keep their shape; a low window caps both, the next at two thirds of the slide now,
-   so the notes keep room and the slide now stays the larger. */
+/* Both slides keep their shape; a low window caps both, the next one lower, so the notes under it
+   keep room and the slide now stays the larger. */
 .slides-presenter {
-  --slides-presenter-cap: 55vh;
+  --slides-presenter-cap: 70vh;
+}
+
+.slides-presenter__now {
+  align-self: start;
 }
 
 .slides-presenter__frame {
@@ -1745,12 +1736,12 @@ html.slides-overview,
 }
 
 .slides-presenter__next .slides-presenter__frame {
-  max-height: calc(var(--slides-presenter-cap) * 2 / 3);
+  max-height: calc(var(--slides-presenter-cap) * 3 / 8);
 }
 
 @media (max-height: 640px) {
   .slides-presenter {
-    --slides-presenter-cap: 40vh;
+    --slides-presenter-cap: 60vh;
   }
 }
 
@@ -1776,8 +1767,8 @@ html.slides-overview,
   display: none;
 }
 
-/* Read at arm's length, while talking: larger than body text, in a frame of its own across the
-   width, and it scrolls when it is long. */
+/* Read at arm's length, while talking: larger than body text, in a column that keeps its lines
+   short, and it scrolls when it is long. */
 .slides-presenter__notes {
   grid-area: notes;
 }
@@ -1819,6 +1810,10 @@ html.slides-overview,
   .slides-presenter {
     --slides-presenter-cap: 30vh;
   }
+
+  .slides-presenter__next .slides-presenter__frame {
+    max-height: calc(var(--slides-presenter-cap) * 2 / 3);
+  }
 }
 
 /* The help window: each key, then what it does. */
@@ -1847,11 +1842,11 @@ html.slides-overview,
   font: var(--text-ui);
 }
 
-/* The findings of the check, on the slide itself while `?check` is in the URL: over the footer
-   and side by side, so they cover as little of the slide's own text as they can. */
+/* The findings of the check, on the slide itself while `?check` is in the URL: just above the
+   footer and side by side, so the footer and the controls stay in view. */
 .slide__findings {
   position: absolute;
-  inset: auto 24px 8px;
+  inset: auto 24px 52px;
   z-index: 4;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
