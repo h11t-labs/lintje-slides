@@ -208,7 +208,7 @@ noemt de eenheid langs de as. Meer soorten en velden staan in Lintje, dat het pa
 | `de titel heeft hoogstens … woorden, nu …` | Kort de titel in; op de titeldia gaat de rest in de ondertitel. Met `: … vallen van de dia` erachter duwt de titel die velden weg: ze passen weer als de titel korter is. |
 | `veld "…" ontbreekt` | Voeg het veld toe; `layouts.md` zegt wat erin hoort. |
 | `"…" is geen veld van …` | De melding noemt de velden die wel bestaan. |
-| `heeft 3 punten, nu 4` | Neem het aantal punten dat de indeling heeft, of kies een andere. |
+| `heeft 3 punten, nu 4` | Neem het aantal punten dat de indeling heeft, of kies een andere. Of de punten passen, meet de controle pas als het aantal klopt. |
 | `<… style>` of `<… class>` | Haal de opmaak weg; wat de dia anders moet laten zien, is een andere indeling. |
 | `de foto heeft een alt-tekst` | Beschrijf wat er op de foto staat. |
 | `de foto … laadt niet` | Zet het bestand op het pad uit `src`, of zet het grijze vlak op zijn plek. |

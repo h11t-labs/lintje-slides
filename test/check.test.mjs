@@ -54,6 +54,8 @@ const CASES = [
   ['a point too few', slide('band-list', list({ points: ['Een', 'Twee'] })), ['veld "points" heeft 3 tot 5 punten, nu 2']],
   ['a point too many', slide('band-list', list({ points: ['Een', 'Twee', 'Drie', 'Vier', 'Vijf', 'Zes'] })), ['veld "points" heeft 3 tot 5 punten, nu 6']],
   ['a card too few', slide('plain-three-cards', cards(['Een zin.', 'Een zin.'])), ['veld "cards" heeft 3 punten, nu 2']],
+  ['a card too many', slide('plain-three-cards', cards(['Een zin.', 'Een zin.', 'Een zin.', 'Een zin.'])), ['veld "cards" heeft 3 punten, nu 4']],
+  ['a card too many, past its words', slide('plain-three-cards', cards([words(20), words(20), words(20), words(20)])), ['veld "cards" heeft 3 punten, nu 4', 'veld "cards": hoogstens 60 woorden, nu 84']],
   ['a class in the content', slide('band-list', list({ intro: '<p data-field="intro" class="groot">Een zin.</p>' })), ['<p class>: de opmaak komt uit de indeling']],
   ['a style in the content', slide('band-list', list({ intro: '<p data-field="intro" style="color: red">Een zin.</p>' })), ['<p style>: de opmaak komt uit de indeling']],
 

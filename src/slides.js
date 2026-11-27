@@ -102,6 +102,7 @@ function words(element) {
   return text(element).trim().split(/\s+/).filter(Boolean).length
 }
 
+/** Reports what a field has against its kind; false when its number of points is not the layout's. */
 function checkField(name, field, element, report) {
   const where = `veld "${name}"`
   const lists = element.matches('ul, ol') ? [element] : [...element.querySelectorAll(':scope > ul, :scope > ol')]
@@ -131,9 +132,11 @@ function checkField(name, field, element, report) {
       const [min, max] = field.items
       if (count < min || count > max) {
         report(min === max ? `${where} heeft ${min} punten, nu ${count}` : `${where} heeft ${min} tot ${max} punten, nu ${count}`)
+        return false
       }
     }
   }
+  return true
 }
 
 function checkImage(img, where, report) {
@@ -175,6 +178,7 @@ function checkSlide(slide) {
   if (titles.length === 1) limit(titles[0], layout.titleWords ?? 16)
 
   const seen = new Set()
+  const miscounted = new Set()
   for (const child of slide.children) {
     if (child.matches('h1, aside[data-notes], .slide__footer, .slide__logo, .slide__findings, .slide__number')) continue
     const field = child.dataset.field
@@ -189,7 +193,7 @@ function checkSlide(slide) {
       if (spec.required) report(`veld "${field}" ontbreekt`)
       continue
     }
-    checkField(field, spec, element, (message) => report(message, element))
+    if (!checkField(field, spec, element, (message) => report(message, element))) miscounted.add(element)
     limit(element, spec.words)
   }
   // Styling belongs to the layout: a style or class in the content is a way around it.
@@ -208,8 +212,10 @@ function checkSlide(slide) {
   for (const element of slide.querySelectorAll(':scope > h1, :scope > [data-field], [data-field] li, [data-field] figure')) {
     const field = element.closest('[data-field]')?.dataset.field
     if (field && !layout.fields[field]) continue
-    const box = element.getBoundingClientRect()
     const owner = element.matches('h1, [data-field]') ? element : element.closest('[data-field]')
+    // The layout is drawn for its own number of points: with another number, that is the finding.
+    if (miscounted.has(owner)) continue
+    const box = element.getBoundingClientRect()
     const state = fit(owner)
     if (overflows(element) || box.right > frame.right - 24 * scale + 1 || box.top < frame.top - 1) {
       if (element === owner) state.tight = true
