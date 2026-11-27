@@ -58,6 +58,9 @@ const CASES = [
   ['a style in the content', slide('band-list', list({ intro: '<p data-field="intro" style="color: red">Een zin.</p>' })), ['<p style>: de opmaak komt uit de indeling']],
 
   ['a field of the most words', slide('band-list', list({ intro: `<p data-field="intro">${words(24)}</p>` })), []],
+  // Two blocks that stand against each other in the markup are still two words.
+  ['a field past its words, without white space between its points', slide('band-list', `<p data-field="intro">Een zin.</p><ul data-field="points"><li>${words(17)}</li><li>${words(17)}</li><li>${words(17)}</li></ul>`), ['veld "points": hoogstens 50 woorden, nu 51']],
+  ['a word in two parts', slide('band-list', list({ intro: `<p data-field="intro">${words(23)} on<strong>geveer</strong></p>` })), []],
   ['a field past its words that still fits', slide('band-list', list({ intro: `<p data-field="intro">${words(25)}</p>` })), ['veld "intro": hoogstens 24 woorden, nu 25']],
   // One cause, one finding: the words and the box of a field come together.
   ['a field past its words that does not fit', slide('band-list', list({ intro: `<p data-field="intro">${words(300)}</p>` })), ['veld "intro" past niet (300 woorden, hoogstens 24): maak de tekst korter']],
@@ -67,6 +70,7 @@ const CASES = [
   ['a point that does not fit in a field past its words', slide('plain-three-cards', cards([words(70), 'Een zin.', 'Een zin.'])), ['veld "cards" past niet (77 woorden, hoogstens 60): maak de tekst korter']],
   ['two points that do not fit', slide('plain-three-cards', cards([words(27), words(27), 'Een zin.'])), ['2 punten in "cards" passen niet: maak de tekst korter']],
   ['a title that does not fit', slide('plain-three-cards', `<h1>${long(10)}</h1>${cards(['Een zin.', 'Een zin.', 'Een zin.'])}`), ['de titel past niet: maak de tekst korter']],
+  ['a title that runs off the top of the band', slide('band-list', `<h1>${long(16)}</h1>${list()}`), ['de titel past niet: maak de tekst korter']],
   ['a title past its words that does not fit', slide('plain-three-cards', `<h1>${words(40)}</h1>${cards(['Een zin.', 'Een zin.', 'Een zin.'])}`), ['de titel past niet (40 woorden, hoogstens 16): maak de tekst korter']],
   // Everything a long title pushes off the slide stands in one finding.
   ['a title past its words that pushes the rest off the slide', slide('photo-title', `<img data-field="photo" src="${PHOTO}" alt="Een foto" /><h1>${long(16)}</h1><p data-field="subtitle">Een ondertitel</p>`), ['de titel heeft hoogstens 4 woorden, nu 16: veld "photo" en veld "subtitle" vallen van de dia']],
@@ -91,19 +95,6 @@ describe('the check of a slide', () => {
   for (const [index, [what, , expected]] of CASES.entries()) {
     it(what, () => assert.deepEqual(perSlide.get(index + 1) ?? [], expected))
   }
-
-  // Text counts its words as one string: without white space between two elements, the last word
-  // of one and the first of the next are one word.
-  it('the words of elements that stand against each other', { todo: 'two words count as one' }, async () => {
-    const page = await theatre.open(deck(slide('band-list', `<p data-field="intro">Een zin.</p><ul data-field="points"><li>${words(17)}</li><li>${words(17)}</li><li>${words(17)}</li></ul>`)))
-    assert.deepEqual(await findings(page), ['dia 1: veld "points": hoogstens 50 woorden, nu 51'])
-  })
-
-  // A long title in the band runs off the top of the slide; the check looks right and down only.
-  it('a title that runs off the top of the band', { todo: 'the check misses it' }, async () => {
-    const page = await theatre.open(deck(slide('band-list', `<h1>${long(16)}</h1>${list()}`)))
-    assert.deepEqual(await findings(page), ['dia 1: de titel past niet: maak de tekst korter'])
-  })
 })
 
 describe('the findings on the slide', () => {
@@ -127,8 +118,8 @@ describe('the findings on the slide', () => {
     assert.deepEqual(await page.locator('.is-error').evaluateAll((marked) => marked.map((element) => element.dataset.field)), ['intro'])
   })
 
-  // The mark of a finding is a class, which the check then takes for styling in the content.
-  it('do not change what the check finds next', { todo: 'is-error counts as a class in the content' }, async () => {
+  // The mark of a finding is a class, and no styling in the content.
+  it('do not change what the check finds next', async () => {
     const page = await theatre.open(faulty, { query: '?check' })
     assert.deepEqual(await findings(page), ['dia 2: veld "intro": hoogstens 24 woorden, nu 25'])
   })

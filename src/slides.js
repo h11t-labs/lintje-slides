@@ -88,8 +88,18 @@ function markFigures(table) {
 
 const TEXT_TAGS = new Set(['P', 'UL', 'OL', 'LI', 'H3', 'H4', 'STRONG', 'EM', 'B', 'I', 'BR', 'A', 'MARK', 'SPAN', 'BLOCKQUOTE'])
 
+const INLINE_TAGS = new Set(['STRONG', 'EM', 'B', 'I', 'A', 'MARK', 'SPAN'])
+
+// The text as it reads: two blocks that stand against each other in the markup are still two words.
+function text(node) {
+  if (node.nodeType === Node.TEXT_NODE) return node.data
+  if (node.nodeType !== Node.ELEMENT_NODE) return ''
+  const inner = [...node.childNodes].map(text).join('')
+  return INLINE_TAGS.has(node.tagName) ? inner : ` ${inner} `
+}
+
 function words(element) {
-  return element.textContent.trim().split(/\s+/).filter(Boolean).length
+  return text(element).trim().split(/\s+/).filter(Boolean).length
 }
 
 function checkField(name, field, element, report) {
@@ -185,7 +195,8 @@ function checkSlide(slide) {
   // Styling belongs to the layout: a style or class in the content is a way around it.
   for (const node of slide.querySelectorAll('[style], [class]')) {
     if (node.closest('lintje-chart, aside[data-notes], .slide__footer, .slide__logo, .slide__findings, .slide__number') || node === slide) continue
-    if (node.hasAttribute('class')) report(`<${node.tagName.toLowerCase()} class>: de opmaak komt uit de indeling`, node)
+    // The mark of an earlier finding is the check's own class.
+    if ([...node.classList].some((name) => name !== 'is-error')) report(`<${node.tagName.toLowerCase()} class>: de opmaak komt uit de indeling`, node)
     if (node.hasAttribute('style') && !node.matches('img[data-focus]')) report(`<${node.tagName.toLowerCase()} style>: de opmaak komt uit de indeling`, node)
   }
   // What does not fit: a box that overflows, or a field past the frame.
@@ -200,7 +211,7 @@ function checkSlide(slide) {
     const box = element.getBoundingClientRect()
     const owner = element.matches('h1, [data-field]') ? element : element.closest('[data-field]')
     const state = fit(owner)
-    if (overflows(element) || box.right > frame.right - 24 * scale + 1) {
+    if (overflows(element) || box.right > frame.right - 24 * scale + 1 || box.top < frame.top - 1) {
       if (element === owner) state.tight = true
       else state.tightPoints.push(element)
     }
