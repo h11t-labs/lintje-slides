@@ -1730,17 +1730,25 @@ html.slides-overview,
   font: var(--text-ui);
 }
 
-/* The duration is the figure a speaker looks for: the largest thing in the head. The button that
-   sets it back stands on its line, the time of day smaller beside it. */
+/* The duration is the figure a speaker looks for: the largest thing in the head, the time of day
+   smaller beside it. Two columns of a label over a figure: the labels share a line, the figures a
+   baseline. The link that sets the duration back stands quietly beside its label. */
 .slides-presenter__times {
-  display: flex;
-  gap: var(--space-4);
-  align-items: end;
+  display: grid;
+  grid-template-rows: auto auto;
+  grid-auto-flow: column;
+  column-gap: var(--space-8);
+  align-items: baseline;
+
+  & > * {
+    margin: 0;
+  }
 }
 
-.slides-presenter__time {
-  display: grid;
-  margin: 0;
+.slides-presenter__label--duration {
+  display: flex;
+  gap: var(--space-3);
+  align-items: baseline;
 }
 
 .slides-presenter__elapsed {
@@ -1751,10 +1759,6 @@ html.slides-overview,
 .slides-presenter__clock {
   font: var(--text-kpi);
   font-variant-numeric: tabular-nums;
-}
-
-.slides-presenter__reset {
-  margin: 0 var(--space-4) var(--space-1) 0;
 }
 
 .slides-presenter__controls {

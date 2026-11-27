@@ -464,9 +464,13 @@ if (presenting) {
         <p class="slides-presenter__position" aria-live="polite"></p>
       </div>
       <div class="slides-presenter__times">
-        <p class="slides-presenter__time"><span class="slides-presenter__label">Duur</span><span class="slides-presenter__elapsed"></span></p>
-        <lintje-button class="slides-presenter__reset" variant="secondary" size="compact" accessible-name="Op nul: de duur opnieuw laten beginnen">Op nul</lintje-button>
-        <p class="slides-presenter__time"><span class="slides-presenter__label">Tijd</span><span class="slides-presenter__clock"></span></p>
+        <p class="slides-presenter__label slides-presenter__label--duration">
+          Duur
+          <lintje-button class="slides-presenter__reset" variant="link" accessible-name="Op nul: de duur opnieuw laten beginnen">Op nul</lintje-button>
+        </p>
+        <p class="slides-presenter__elapsed"></p>
+        <p class="slides-presenter__label">Tijd</p>
+        <p class="slides-presenter__clock"></p>
       </div>
       <div class="slides-presenter__controls">
         <lintje-button class="slides-presenter__previous" variant="secondary" icon="functioneel-delta-naar-links">Vorige</lintje-button>
