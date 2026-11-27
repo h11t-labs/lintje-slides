@@ -452,7 +452,7 @@ if (presenting) {
       <div class="slides-presenter__times">
         <p class="slides-presenter__label slides-presenter__label--duration">
           Duur
-          <lintje-button class="slides-presenter__reset" variant="link" accessible-name="Reset: de duur opnieuw laten beginnen">Reset</lintje-button>
+          <button class="slides-presenter__reset" type="button" aria-label="Reset: de duur opnieuw laten beginnen">Reset</button>
         </p>
         <p class="slides-presenter__elapsed"></p>
         <p class="slides-presenter__label">Tijd</p>
