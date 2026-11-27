@@ -1754,9 +1754,28 @@ html.slides-overview,
   justify-self: stretch;
 }
 
-/* Lintje's link is body size and has no smaller one; zoomed, it reads at the label's size. */
+/* A link at the label's size and weight: Lintje's own link is body size and bold. The padding
+   gives it the height of a text target without moving the line. */
 .slides-presenter__reset {
-  zoom: 0.875;
+  margin-block: calc(var(--space-1) * -1);
+  padding: var(--space-1) 0;
+  color: var(--color-link);
+  background: none;
+  border: 0;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+  cursor: pointer;
+}
+
+.slides-presenter__reset:hover {
+  color: var(--color-link-hover);
+}
+
+.slides-presenter__reset:focus-visible {
+  outline: var(--focus-width) solid var(--color-focus);
+  outline-offset: var(--focus-offset);
+  box-shadow: 0 0 0 var(--focus-offset) var(--color-focus-inner);
 }
 
 .slides-presenter__elapsed {
