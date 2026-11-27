@@ -70,6 +70,7 @@ in je eigen `AGENTS.md`: "Volg voor een presentatie
 npx lintje-slides serve                             # een server op poort 5190, met een link per deck
 npx lintje-slides check decks/brieven.html          # meldt wat niet past
 npx lintje-slides check decks/brieven.html --images # en zet een png per dia in out/brieven/
+npx lintje-slides check decks/brieven.html --sheet  # en alle dia's klein in één png, out/brieven-overzicht.png
 npx lintje-slides pdf decks/brieven.html            # out/brieven.pdf
 npx lintje-slides pdf decks/brieven.html --dark     # out/brieven-dark.pdf
 npx lintje-slides bundle decks/brieven.html         # out/brieven.html, één los bestand
@@ -90,7 +91,10 @@ ook; `lintje-slides serve` levert altijd de versie van Lintje die bij het pakket
 
 De controle meldt een onbekende indeling of veld, een `data-controls` dat geen plek is, een ontbrekend veld, te veel woorden of punten,
 een foto zonder alt-tekst, opmaak in de inhoud, en tekst die niet in zijn vak past. Een deck met
-meldingen krijgt geen pdf en geen bundel.
+meldingen krijgt geen pdf en geen bundel, maar wel zijn beelden en zijn overzicht: die zijn om
+naar te kijken. Het overzicht is dat van het deck (toets O), als één png met elke dia genummerd en
+scherp genoeg om de titels te lezen: de volgorde en de afwisseling van de ondergronden in één
+blik. Met `--dark` heten ze `out/<deck>-dark/` en `out/<deck>-dark-overzicht.png`.
 
 In de browser zet `?mode=dark` het deck donker, `?theme=defensie` probeert een ander thema dan het
 deck zelf noemt (`data-theme`), `?controls=right` zet de balk met knoppen op een andere plek dan het
