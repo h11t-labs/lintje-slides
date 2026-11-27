@@ -211,7 +211,7 @@ describe('the bundle of the example deck', () => {
   })
 
   it('is the same deck, with nothing the check finds', async () => {
-    assert.equal(await page.locator('.slide').count(), 30)
+    assert.equal(await page.locator('.slide').count(), 33)
     assert.deepEqual(await page.evaluate(() => window.slidesCheck()), [])
   })
 

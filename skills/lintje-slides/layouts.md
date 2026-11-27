@@ -7,8 +7,10 @@ meldt wat erboven gaat. Dit bestand komt uit `src/layouts.js`.
 | indeling | wanneer | velden naast de `<h1>` |
 |---|---|---|
 | `photo-title` | De eerste dia: de titel in het blauwe blok op een foto. (titel ≤ 4 woorden, met embleem, zonder voet) | `photo`: `<img>` met alt<br>`subtitle`: tekst; ≤ 14 woorden<br>`speaker` (mag weg): tekst; spreker en datum, elk een `<p>`, ≤ 16 woorden<br>`payoff` (mag weg): label, één regel; de pay-off van de organisatie, ≤ 12 woorden |
+| `blue-title` | De eerste dia zonder foto: de titel op het blauwe vlak. (titel ≤ 4 woorden, met embleem, zonder voet) | `subtitle`: tekst; ≤ 14 woorden<br>`speaker` (mag weg): tekst; spreker en datum, elk een `<p>`, ≤ 16 woorden<br>`payoff` (mag weg): label, één regel; de pay-off van de organisatie, ≤ 12 woorden |
 | `photo-closing-block` | De laatste dia, als spiegel van de titeldia. (met embleem, zonder voet) | `photo`: `<img>` met alt<br>`text`: tekst; ≤ 20 woorden<br>`contact`: tekst; naam en e-mailadres, elk een `<p>`, ≤ 16 woorden<br>`payoff` (mag weg): label, één regel; de pay-off van de organisatie, ≤ 12 woorden |
 | `photo-closing-panel` | De laatste dia, rustiger: een wit paneel op de foto. (met embleem, zonder voet) | `photo`: `<img>` met alt<br>`text`: tekst; ≤ 20 woorden<br>`contact`: tekst; naam en e-mailadres, elk een `<p>`, ≤ 16 woorden<br>`payoff` (mag weg): label, één regel; de pay-off van de organisatie, ≤ 12 woorden |
+| `blue-closing` | De laatste dia zonder foto, als spiegel van `blue-title`. (met embleem, zonder voet) | `text`: tekst; ≤ 20 woorden<br>`contact`: tekst; naam en e-mailadres, elk een `<p>`, ≤ 16 woorden<br>`payoff` (mag weg): label, één regel; de pay-off van de organisatie, ≤ 12 woorden |
 | `blue-closing-photo-strip` | De laatste dia met drie foto’s uit de presentatie. (met embleem, zonder voet) | `contact`: tekst; naam en e-mailadres, elk een `<p>`, ≤ 16 woorden<br>`text`: tekst; ≤ 24 woorden<br>`photos`: 3 foto’s (`<figure>`)<br>`payoff` (mag weg): label, één regel; de pay-off van de organisatie, ≤ 12 woorden |
 | `photo-divider` | Het begin van een hoofdstuk, met een foto. | `photo`: `<img>` met alt<br>`number`: label, één regel; één woord<br>`label` (mag weg): label, één regel; ≤ 2 woorden<br>`text` (mag weg): tekst; ≤ 24 woorden |
 | `photo-panel` | Eén boodschap op een foto die het verhaal draagt. | `photo`: `<img>` met alt<br>`text` (mag weg): tekst; ≤ 24 woorden |
@@ -29,6 +31,7 @@ meldt wat erboven gaat. Dit bestand komt uit `src/layouts.js`.
 | `band-list` | De kern in één zin, met de punten die hem dragen. | `intro`: tekst; ≤ 24 woorden<br>`points`: tekst; `<ul>` met `<li>`, ≤ 50 woorden |
 | `band-chart` | Eén grafiek; de titel zegt wat hij laat zien. | `chart`: `<lintje-chart>`<br>`source` (mag weg): label, één regel; ≤ 16 woorden |
 | `band-table` | Een kleine tabel, tot zes rijen. | `table`: `<table>` met `<caption>` |
+| `blue-divider` | Het begin van een hoofdstuk, zonder foto: een groot nummer op blauw. | `number`: label, één regel; één woord<br>`label` (mag weg): label, één regel; ≤ 3 woorden<br>`text` (mag weg): tekst; ≤ 24 woorden |
 | `blue-three-points` | Een stelling als titel, met drie punten die hem onderbouwen. | `points`: tekst; `<ul>`, elk een `<li>` met `<h3>` en `<p>`, ≤ 60 woorden |
 | `blue-statement` | Een stelling om over te stemmen of te praten. | `label` (mag weg): label, één regel; ≤ 2 woorden<br>`question` (mag weg): tekst; ≤ 16 woorden |
 | `blue-summary` | Wat de zaal onthoudt: drie zinnen, aan het eind. | `points`: tekst; `<ol>` met drie `<li>`, ≤ 45 woorden |

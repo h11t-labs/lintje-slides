@@ -45,6 +45,9 @@ const CASES = [
   ['a photo that does not load', slide('photo-panel', panel(img('src="/bestaat-niet.jpg" alt="Een foto"'))), ['veld "photo": de foto /bestaat-niet.jpg laadt niet']],
   ['the photos of a wall', slide('photo-wall', wall(4)), []],
   ['a photo too few', slide('photo-wall', wall(3)), [`veld "photos" heeft 4 foto's, nu 3`]],
+  ['a title slide without a photo', slide('blue-title', '<h1>Een titel</h1><p data-field="subtitle">Een ondertitel</p>'), []],
+  ['a chapter on blue, without a photo', slide('blue-divider', '<span data-field="number">1</span><h1>Een hoofdstuk</h1>'), []],
+  ['a closing without a photo', slide('blue-closing', '<h1>Bedankt</h1><p data-field="text">Een zin.</p><div data-field="contact"><p>Een naam</p></div>'), []],
 
   ['a chart field without a chart', slide('band-chart', '<div data-field="chart"><p>Een zin.</p></div>'), ['veld "chart" is een <lintje-chart>']],
   ['a chart of its shape', slide('band-chart', chart({ kind: 'dumbbell', fromLabel: '2025', toLabel: '2026', rows: [{ label: 'Noord', from: 210, to: 130 }] })), []],
@@ -89,6 +92,7 @@ const CASES = [
   ['a title past its words that does not fit', slide('plain-three-cards', `<h1>${words(40)}</h1>${cards(['Een zin.', 'Een zin.', 'Een zin.'])}`), ['de titel past niet (40 woorden, hoogstens 16): maak de tekst korter']],
   // Everything a long title pushes off the slide stands in one finding.
   ['a title past its words that pushes the rest off the slide', slide('photo-title', `<img data-field="photo" src="${PHOTO}" alt="Een foto" /><h1>${long(16)}</h1><p data-field="subtitle">Een ondertitel</p>`), ['de titel heeft hoogstens 4 woorden, nu 16: veld "photo" en veld "subtitle" vallen van de dia']],
+  ['a title past its words that pushes the rest off a title slide without a photo', slide('blue-title', `<h1>${long(16)}</h1><p data-field="subtitle">Een ondertitel</p>`), ['de titel heeft hoogstens 4 woorden, nu 16: veld "subtitle" valt van de dia']],
   ['a title that pushes the rest off the slide', slide('blue-statement', `<h1>${long(12)}</h1><p data-field="question">Een vraag.</p>`), ['de titel en veld "question" vallen van de dia: de titel of de tekst erboven is te lang']],
 ]
 

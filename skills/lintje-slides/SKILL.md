@@ -25,7 +25,7 @@ het deck.
    naar bijvoorbeeld `decks/<naam>.html`: daarin staat elke indeling één keer, gevuld, in een
    hoeveelheid tekst die past. Houd per dia de sectie van zijn indeling, in jouw volgorde, en
    vervang de inhoud. De foto's van het voorbeeld komen niet mee: geef elke `<img>` meteen een
-   eigen foto of het grijze vlak (zie [Goed gebruik](#goed-gebruik), zonder foto's).
+   eigen foto, of kies een indeling zonder foto (zie [Goed gebruik](#goed-gebruik), zonder foto's).
 4. **Controleer.** Draai `npx lintje-slides check decks/<naam>.html --sheet --images` en los elke
    melding op ([Meldingen](#meldingen)). Bekijk daarna eerst `out/<naam>-overzicht.png`, alle
    dia's genummerd naast elkaar: de volgorde, en of de ondergronden wisselen zoals
@@ -86,9 +86,9 @@ Kies op wat de dia moet doen. De velden en de grenzen staan in [`layouts.md`](la
 
 | de dia moet… | indeling |
 |---|---|
-| openen | `photo-title`, altijd de eerste |
+| openen | `photo-title`, of `blue-title` zonder foto; altijd de eerste |
 | zeggen wat er komt (vanaf een deck van een stuk of tien dia's) | `plain-agenda` |
-| een hoofdstuk openen | `photo-divider`, of `plain-divider` zonder passende foto |
+| een hoofdstuk openen | `photo-divider`; zonder passende foto `blue-divider` of `plain-divider` |
 | drie gelijkwaardige punten geven | `plain-three-cards`; `blue-three-points` als de titel een stelling is die moet blijven hangen |
 | een kern met de punten die hem dragen | `band-list`; met de kern als kaart ernaast `plain-key-card` |
 | een kern met drie pijlers eronder | `plain-three-pillars` |
@@ -106,7 +106,7 @@ Kies op wat de dia moet doen. De velden en de grenzen staan in [`layouts.md`](la
 | één zin op een beeld dat het verhaal draagt | `photo-panel` |
 | een plek of werkveld laten zien | `photo-wall` |
 | samenvatten wat de zaal onthoudt | `blue-summary`, aan het eind |
-| afsluiten | `photo-closing-block`, `photo-closing-panel` of `blue-closing-photo-strip`, altijd de laatste |
+| afsluiten | `photo-closing-block`, `photo-closing-panel` of `blue-closing-photo-strip`; zonder foto `blue-closing`; altijd de laatste |
 
 ## Goed gebruik
 
@@ -124,8 +124,9 @@ Kies op wat de dia moet doen. De velden en de grenzen staan in [`layouts.md`](la
   (`blue-…`) en half (`half-…`); elk is een eigen ondergrond, ook de band met zijn blauwe kop.
   Drie inhoudsdia's achter elkaar op dezelfde ondergrond lezen als één lange dia; een
   tussenpagina breekt de reeks al. Bewaar blauw voor wat
-  de zaal moet onthouden (hooguit één per hoofdstuk en de samenvatting), een foto om te rusten,
-  de band voor data.
+  de zaal moet onthouden (hooguit één inhoudsdia per hoofdstuk en de samenvatting), een foto om
+  te rusten, de band voor data. Een blauwe tussenpagina telt daar niet bij, maar zet de dia erna
+  niet op blauw.
 - **Een getal heeft een eenheid en een vergelijking**: "120 telefoontjes per 1.000 brieven, was
   210". Het grote getal in `<strong>` is hoogstens vijf tekens (`87%`, `1,4`, `120`); de eenheid
   ("miljoen euro") staat in de `<h3>` eronder. Noem de bron in het veld `source` of in het bijschrift. Ontbrekende cijfers laat je weg
@@ -138,11 +139,15 @@ Kies op wat de dia moet doen. De velden en de grenzen staan in [`layouts.md`](la
 - **Een foto draagt iets**: de plek, de mensen, het werk waar het over gaat, uit de beeldbank van
   de organisatie. Kies er een met ruimte rond het onderwerp; `data-focus="x y"` houdt een ander
   deel in beeld dan het midden, in procenten (`data-focus="60 30"`).
-- **Zonder foto's** kies je voor de inhoud indelingen zonder foto: `plain-divider` in plaats van
-  `photo-divider`, `blue-statement` in plaats van `photo-statement`, `plain-three-figures` in
-  plaats van `half-key-figure`. De titeldia en de afsluiting hebben altijd een foto: zet daar het
-  grijze vlak `/node_modules/@lintje/slides/examples/photos/placeholder.svg`, met de alt-tekst
-  "Plaats voor een foto", en meld wie het deck krijgt dat er nog een foto moet komen.
+- **Zonder foto's** kies je indelingen zonder foto: `blue-title` en `blue-closing` voor de
+  titeldia en de afsluiting, `blue-divider` of `plain-divider` in plaats van `photo-divider`,
+  `blue-statement` in plaats van `photo-statement`, `plain-three-figures` in plaats van
+  `half-key-figure`. Kies de tussenpagina op een andere ondergrond dan de dia ervoor en erna:
+  `blue-divider` tussen dia's op het vlak of de band, `plain-divider` naast een dia op blauw. Zo
+  wisselt een deck zonder foto's even goed van ondergrond als een met foto's. Komt er later nog
+  een foto, zet dan op zijn plek het grijze vlak
+  `/node_modules/@lintje/slides/examples/photos/placeholder.svg`, met de alt-tekst "Plaats voor
+  een foto", en meld wie het deck krijgt dat die foto nog moet komen.
 - **Licht of donker**: licht voor een zaal met daglicht en voor de pdf om te delen, donker voor een
   donkere zaal of een groot scherm. Beide komen uit hetzelfde deck (`?mode=dark`, `--dark`).
 

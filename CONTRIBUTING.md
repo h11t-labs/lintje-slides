@@ -8,7 +8,7 @@ pakket hoort, voor wie een presentatie maakt.
 
 - **Wat generiek is, hoort in Lintje.** Een kleur, een maat of een element dat ook een pagina zou
   gebruiken, wordt een issue bij [Lintje](https://github.com/h11t-labs/lintje), geen regel in
-  `src/slides.css`. Wat hier blijft: het vaste vlak, de dertig rasters, de voet, het embleem, de
+  `src/slides.css`. Wat hier blijft: het vaste vlak, de drieëndertig rasters, de voet, het embleem, de
   controle, de pdf en de handleiding.
 - **Alleen tokens van Lintje** voor kleur, ruimte en hoeken. Wat daarvan afwijkt, staat met reden
   in de README onder "Wat afwijkt van Lintje".

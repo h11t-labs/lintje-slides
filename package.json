@@ -2,7 +2,7 @@
   "name": "@lintje/slides",
   "version": "0.3.0",
   "type": "module",
-  "description": "Lintje slides: presentations in HTML in the Rijkshuisstijl, with thirty layouts, a check and a PDF",
+  "description": "Lintje slides: presentations in HTML in the Rijkshuisstijl, with thirty-three layouts, a check and a PDF",
   "license": "EUPL-1.2",
   "engines": {
     "node": "^20.19.0 || >=22.12.0"

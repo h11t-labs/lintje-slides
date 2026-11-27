@@ -586,6 +586,44 @@ body {
   grid-template-columns: repeat(3, 1fr);
 }
 
+/* --- Titel en slot: the blue plane without a photo -------------------------------------------- */
+
+/* The plane of the strip's closing, down to the payoff: the emblem keeps its white band above it,
+   and the block stands where the photo's title block stands. */
+.slide:is([data-layout='blue-title'], [data-layout='blue-closing']) {
+  grid-template-columns: 24px 48px 640px 1fr 24px;
+  grid-template-rows: 120px minmax(0, 1fr) auto auto auto 56px 48px;
+  color: var(--slide-on-blue);
+}
+
+.slide:is([data-layout='blue-title'], [data-layout='blue-closing'])::before {
+  content: '';
+  grid-area: 2 / 2 / 7 / -2;
+  background: var(--slide-blue);
+  border-top-right-radius: var(--slide-corner);
+}
+
+.slide:is([data-layout='blue-title'], [data-layout='blue-closing']) > :is(h1, [data-field]):not([data-field='payoff']) {
+  grid-column: 3;
+}
+
+.slide:is([data-layout='blue-title'], [data-layout='blue-closing']) > h1 {
+  grid-row: 3;
+  font: var(--slide-text-display);
+}
+
+.slide:is([data-layout='blue-title'], [data-layout='blue-closing']) > :is([data-field='subtitle'], [data-field='text']) {
+  grid-row: 4;
+  margin-top: 16px;
+  font: var(--slide-text-intro);
+}
+
+.slide:is([data-layout='blue-title'], [data-layout='blue-closing']) > :is([data-field='speaker'], [data-field='contact']) {
+  grid-row: 5;
+  margin-top: 24px;
+  font: var(--slide-text-small);
+}
+
 /* --- Vlak ---------------------------------------------------------------------------------- */
 
 /* The light plane inside the frame, its one large corner top right. */
@@ -1211,7 +1249,7 @@ body {
 /* --- Blauw --------------------------------------------------------------------------------- */
 
 /* The frame filled with blue: a statement, white on it. */
-.slide[data-layout^='blue-']:not([data-layout='blue-closing-photo-strip'])::before {
+.slide[data-layout^='blue-']:not([data-layout='blue-closing-photo-strip'], [data-layout='blue-title'], [data-layout='blue-closing'])::before {
   content: '';
   grid-area: 1 / 1 / -1 / -1;
   margin: 24px 24px 48px;
@@ -1225,6 +1263,36 @@ body {
 
 .slide[data-layout^='blue-'] > h1 {
   color: var(--slide-on-blue);
+}
+
+/* The chapter number of the plane's divider, white on the blue: a chapter opens on another ground. */
+.slide[data-layout='blue-divider'] {
+  grid-template-columns: 72px 1fr 72px;
+  grid-template-rows: minmax(0, 1fr) auto auto auto 48px 48px;
+}
+
+.slide[data-layout='blue-divider'] > [data-field='number'] {
+  grid-area: 1 / 2;
+  margin: 20px 0 0 -12px;
+  font: 700 300pt/1 var(--font-ui);
+}
+
+.slide[data-layout='blue-divider'] > [data-field='label'] {
+  grid-area: 2 / 2;
+  padding: 0;
+  font: 700 16pt/1.3 var(--font-ui);
+}
+
+.slide[data-layout='blue-divider'] > h1 {
+  grid-area: 3 / 2;
+  margin-top: var(--space-3);
+  font: 700 44pt/1.08 var(--font-ui);
+}
+
+.slide[data-layout='blue-divider'] > [data-field='text'] {
+  grid-area: 4 / 2;
+  margin-top: var(--space-3);
+  font: var(--slide-text-intro);
 }
 
 .slide[data-layout='blue-three-points'] {
