@@ -154,7 +154,7 @@ function checkSlide(slide) {
 
   const seen = new Set()
   for (const child of slide.children) {
-    if (child.matches('h1, .slide__footer, .slide__logo, .slide__finding, .slide__number')) continue
+    if (child.matches('h1, aside[data-notes], .slide__footer, .slide__logo, .slide__finding, .slide__number')) continue
     const field = child.dataset.field
     if (field === undefined) report(`<${child.tagName.toLowerCase()}> zonder data-field: alles op een dia staat in een veld`, child)
     else if (!layout.fields[field]) report(`"${field}" is geen veld van ${name}; wel: ${Object.keys(layout.fields).join(', ')}`, child)
@@ -171,7 +171,7 @@ function checkSlide(slide) {
   }
   // Styling belongs to the layout: a style or class in the content is a way around it.
   for (const node of slide.querySelectorAll('[style], [class]')) {
-    if (node.closest('lintje-chart, .slide__footer, .slide__logo, .slide__finding, .slide__number') || node === slide) continue
+    if (node.closest('lintje-chart, aside[data-notes], .slide__footer, .slide__logo, .slide__finding, .slide__number') || node === slide) continue
     if (node.hasAttribute('class')) report(`<${node.tagName.toLowerCase()} class>: de opmaak komt uit de indeling`, node)
     if (node.hasAttribute('style') && !node.matches('img[data-focus]')) report(`<${node.tagName.toLowerCase()} style>: de opmaak komt uit de indeling`, node)
   }
@@ -236,8 +236,40 @@ nav.innerHTML = `
   <lintje-icon-button class="slides-nav__next" icon="functioneel-delta-naar-rechts" label="Volgende dia"></lintje-icon-button>
   <lintje-icon-button class="slides-nav__mode" icon="functioneel-darkmode" label="Donker"></lintje-icon-button>
   <lintje-icon-button class="slides-nav__overview" icon="functioneel-tegelweergave" label="Alle dia's"></lintje-icon-button>
-  <lintje-icon-button class="slides-nav__fullscreen" icon="multimedia-player-full-screen" label="Volledig scherm"></lintje-icon-button>`
+  <lintje-icon-button class="slides-nav__speaker" icon="functioneel-externe-link" label="Sprekersweergave"></lintje-icon-button>
+  <lintje-icon-button class="slides-nav__fullscreen" icon="multimedia-player-full-screen" label="Volledig scherm"></lintje-icon-button>
+  <lintje-icon-button class="slides-nav__help" icon="functioneel-vraagteken" label="Sneltoetsen"></lintje-icon-button>`
 document.body.append(nav)
+
+// The keys, for the help window; the keydown handler below does what they say.
+const shortcuts = [
+  [['→', '↓', 'PgDn', 'Spatie'], 'Volgende dia'],
+  [['←', '↑', 'PgUp', 'Shift Spatie'], 'Vorige dia'],
+  [['Home', 'End'], 'Eerste of laatste dia'],
+  [['O'], "Alle dia's; Escape sluit het overzicht"],
+  [['F'], 'Volledig scherm'],
+  [['D'], 'Licht of donker'],
+  [['S'], 'Sprekersweergave in een tweede venster'],
+  [['?'], 'Deze sneltoetsen'],
+]
+const helpDialog = document.createElement('lintje-dialog')
+helpDialog.setAttribute('heading', 'Sneltoetsen')
+helpDialog.toggleAttribute('wide', true)
+helpDialog.innerHTML = `<dl class="slides-keys">${shortcuts
+  .map(([keys, what]) => `<div class="slides-keys__row"><dt class="slides-keys__keys">${keys.map((key) => `<lintje-key>${key}</lintje-key>`).join(' ')}</dt><dd class="slides-keys__what">${what}</dd></div>`)
+  .join('')}</dl>`
+helpDialog.addEventListener('lintje-close', () => (helpDialog.open = false))
+document.body.append(helpDialog)
+
+const blockedDialog = document.createElement('lintje-dialog')
+blockedDialog.setAttribute('heading', 'Tweede venster tegengehouden')
+blockedDialog.innerHTML = '<p>De browser hield de sprekersweergave tegen. Sta pop-ups toe voor deze pagina en druk weer op S.</p>'
+blockedDialog.addEventListener('lintje-close', () => (blockedDialog.open = false))
+document.body.append(blockedDialog)
+
+function help() {
+  helpDialog.open = true
+}
 
 const count = nav.querySelector('.slides-nav__count')
 const previous = nav.querySelector('.slides-nav__previous')
@@ -245,15 +277,21 @@ const next = nav.querySelector('.slides-nav__next')
 const overviewButton = nav.querySelector('.slides-nav__overview')
 const fullscreenButton = nav.querySelector('.slides-nav__fullscreen')
 const modeButton = nav.querySelector('.slides-nav__mode')
+const speakerButton = nav.querySelector('.slides-nav__speaker')
+const helpButton = nav.querySelector('.slides-nav__help')
 const root = document.documentElement
 
 function show(number) {
-  slides.forEach((slide, index) => slide.classList.toggle('is-current', index === number - 1))
+  slides.forEach((slide, index) => {
+    slide.classList.toggle('is-current', index === number - 1)
+    slide.classList.toggle('is-next', index === number)
+  })
   count.textContent = `${number} / ${slides.length}`
   previous.disabled = number === 1
   next.disabled = number === slides.length
   const title = slides[number - 1]?.querySelector(':scope > h1')?.textContent.trim()
-  document.title = `${title ?? deck} (${number}/${slides.length})`
+  document.title = `${presenting ? 'Spreker: ' : ''}${title ?? deck} (${number}/${slides.length})`
+  if (presenting) speak(number)
 }
 
 function go(number) {
@@ -271,12 +309,152 @@ function fullscreen() {
 }
 
 // Light or dark lives in the URL (?mode=dark) like the slide number, so a link keeps it.
-function mode(dark = root.dataset.mode !== 'dark') {
+function mode(dark = root.dataset.mode !== 'dark', { quiet = false } = {}) {
   root.dataset.mode = dark ? 'dark' : 'light'
   modeButton.pressed = dark
   const url = new URL(location.href)
   url.searchParams.set('mode', dark ? 'dark' : 'light')
   history.replaceState(null, '', url)
+  if (!quiet) tell()
+}
+
+// --- The speaker's view ------------------------------------------------------------------------
+
+// `?presenter` is the same deck in a second window: the slide now, the next one, the notes and the
+// time. The two windows keep each other on the same slide and mode. A BroadcastChannel reaches the
+// other window after either reloads; postMessage between opener and popup also works over file://,
+// where a channel may not.
+const presenting = params.has('presenter')
+const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel(`lintje-slides ${location.pathname}`) : null
+let speakerWindow = null
+
+function peers() {
+  return [window.opener, speakerWindow].filter((peer) => peer && !peer.closed)
+}
+
+// Each message comes twice, by channel and by postMessage, and two quick steps can cross: a window
+// follows only a message newer than the last it sent or followed, and does not pass it on.
+let latest = 0
+let following = null
+
+function tell() {
+  latest = Math.max(Date.now(), latest + 1)
+  const message = { lintjeSlides: 1, at: latest, slide: current(), dark: root.dataset.mode === 'dark' }
+  channel?.postMessage(message)
+  for (const peer of peers()) peer.postMessage(message, '*')
+}
+
+function heard(message) {
+  if (message?.lintjeSlides !== 1 || !(message.at > latest)) return
+  latest = message.at
+  if (message.dark !== (root.dataset.mode === 'dark')) mode(message.dark, { quiet: true })
+  if (message.slide !== current()) following = message.slide
+  go(message.slide)
+}
+
+channel?.addEventListener('message', (event) => heard(event.data))
+addEventListener('message', (event) => {
+  if (!event.source || event.source === window || event.data?.lintjeSlides !== 1) return
+  // Over file:// a reloaded deck has lost its speaker window; the window that writes to it is that.
+  if (!presenting && event.source !== window.opener) speakerWindow = event.source
+  heard(event.data)
+})
+
+function openSpeaker() {
+  if (presenting) return
+  const url = new URL(location.href)
+  url.searchParams.set('presenter', '')
+  // Find the speaker window by name first: opening its URL again would reload it and reset the time.
+  speakerWindow = open('', `lintje-slides ${location.pathname}`, 'popup,width=1280,height=800')
+  if (!speakerWindow) {
+    blockedDialog.open = true
+    return
+  }
+  try {
+    if (speakerWindow.location.href === 'about:blank') speakerWindow.location.href = url.href
+  } catch {
+    // An existing window over file:// is another origin; it is already the speaker's view.
+  }
+  speakerWindow.focus()
+}
+
+let speaker
+if (presenting) {
+  root.classList.add('slides-speaking')
+  speaker = document.createElement('div')
+  speaker.className = 'slides-presenter'
+  speaker.innerHTML = `
+    <div class="slides-presenter__bar">
+      <h1 class="slides-presenter__title"></h1>
+      <p class="slides-presenter__time"><span class="slides-presenter__label">Tijd</span><span class="slides-presenter__clock"></span></p>
+      <div class="slides-presenter__time slides-presenter__time--duration">
+        <span class="slides-presenter__label">Duur</span><span class="slides-presenter__elapsed"></span>
+        <lintje-icon-button class="slides-presenter__reset" icon="functioneel-refresh" label="Duur op nul"></lintje-icon-button>
+      </div>
+    </div>
+    <section class="slides-presenter__now" aria-label="Huidige dia">
+      <p class="slides-presenter__label">Nu</p>
+      <div class="slides-presenter__frame"></div>
+    </section>
+    <section class="slides-presenter__next" aria-label="Volgende dia">
+      <p class="slides-presenter__label">Volgende</p>
+      <div class="slides-presenter__frame"><p class="slides-presenter__end">Einde van de presentatie</p></div>
+    </section>
+    <section class="slides-presenter__notes" aria-label="Notities">
+      <p class="slides-presenter__label">Notities</p>
+      <div class="slides-presenter__text"></div>
+    </section>`
+  speaker.querySelector('.slides-presenter__title').textContent = deck
+  document.body.prepend(speaker)
+  speaker.querySelector('.slides-presenter__bar').append(nav)
+  let start = Date.now()
+  const clock = speaker.querySelector('.slides-presenter__clock')
+  const elapsed = speaker.querySelector('.slides-presenter__elapsed')
+  const tick = () => {
+    const seconds = Math.floor((Date.now() - start) / 1000)
+    const pad = (n) => String(n).padStart(2, '0')
+    clock.textContent = new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' })
+    elapsed.textContent = `${Math.floor(seconds / 3600)}:${pad(Math.floor(seconds / 60) % 60)}:${pad(seconds % 60)}`
+  }
+  speaker.querySelector('.slides-presenter__reset').addEventListener('click', () => {
+    start = Date.now()
+    tick()
+  })
+  tick()
+  setInterval(tick, 1000)
+  new ResizeObserver(() => place()).observe(speaker)
+}
+
+// Each slide stands at the top of its frame, scaled to fit it; the next one is a preview, out of
+// reach.
+function place() {
+  if (overviewOpen()) return
+  const [nowFrame, nextFrame] = speaker.querySelectorAll('.slides-presenter__frame')
+  slides.forEach((slide, index) => {
+    const frame = slide.classList.contains('is-current') ? nowFrame : slide.classList.contains('is-next') ? nextFrame : null
+    slide.inert = frame === nextFrame
+    if (!frame) return slide.style.removeProperty('transform')
+    const box = frame.getBoundingClientRect()
+    const factor = Math.min(box.width / width, box.height / height)
+    const x = box.left + (box.width - width * factor) / 2
+    const y = box.top
+    slide.style.transform = `translate(${x}px, ${y}px) scale(${factor})`
+  })
+  // The slide stands over its frame but elsewhere in the page; a screen reader finds it in the frame.
+  const now = slides.find((slide) => slide.classList.contains('is-current'))
+  now.id ||= `slide-${slides.indexOf(now) + 1}`
+  nowFrame.setAttribute('aria-owns', now.id)
+  const nextTitle = slides.find((slide) => slide.classList.contains('is-next'))?.querySelector(':scope > h1')?.textContent.trim()
+  nextFrame.closest('section').setAttribute('aria-label', nextTitle ? `Volgende dia: ${nextTitle}` : 'Volgende dia')
+}
+
+function speak(number) {
+  const notes = slides[number - 1]?.querySelector(':scope > aside[data-notes]')
+  const box = speaker.querySelector('.slides-presenter__text')
+  if (notes?.textContent.trim()) box.replaceChildren(...notes.cloneNode(true).childNodes)
+  else box.innerHTML = '<p class="slides-presenter__empty">Geen notities bij deze dia.</p>'
+  speaker.querySelector('.slides-presenter__end').hidden = number < slides.length
+  place()
 }
 
 function fullscreenChanged() {
@@ -301,6 +479,17 @@ function overviewSize() {
 
 function overview(open = !overviewOpen()) {
   root.classList.toggle('slides-overview', open)
+  // In the speaker's view the overview takes the window, with the controls at the bottom as usual.
+  if (presenting) {
+    speaker.hidden = open
+    if (open) document.body.append(nav)
+    else speaker.querySelector('.slides-presenter__bar').append(nav)
+    for (const slide of slides) {
+      slide.inert = false
+      slide.style.removeProperty('transform')
+    }
+    for (const frame of speaker.querySelectorAll('.slides-presenter__frame')) frame.removeAttribute('aria-owns')
+  }
   overviewButton.icon = open ? 'functioneel-kruis' : 'functioneel-tegelweergave'
   overviewButton.label = open ? 'Overzicht sluiten' : "Alle dia's"
   slides.forEach((slide, index) => {
@@ -322,6 +511,12 @@ function overview(open = !overviewOpen()) {
     slide.scrollIntoView({ block: 'center' })
   } else {
     scrollTo(0, 0)
+    if (presenting) {
+      place()
+      // The focused slide is no longer a button and the controls moved back into the bar.
+      // lintje-icon-button does not pass focus() on to its button.
+      overviewButton.shadowRoot?.querySelector('button')?.focus()
+    }
   }
 }
 
@@ -334,7 +529,12 @@ for (const slide of slides) {
   slide.addEventListener('click', () => overviewOpen() && choose(slide))
 }
 
-addEventListener('hashchange', () => show(current()))
+// Only a change tells the other window: a window that just loaded must not pull the others back.
+addEventListener('hashchange', () => {
+  show(current())
+  if (following === current()) following = null
+  else tell()
+})
 addEventListener('resize', () => {
   scale()
   if (overviewOpen()) overviewSize()
@@ -346,12 +546,17 @@ modeButton.pressed = root.dataset.mode === 'dark'
 previous.addEventListener('click', () => go(current() - 1))
 next.addEventListener('click', () => go(current() + 1))
 fullscreenButton.addEventListener('click', fullscreen)
+speakerButton.addEventListener('click', openSpeaker)
+helpButton.addEventListener('click', help)
 
 addEventListener('keydown', (event) => {
   // A key a Lintje element already handled (a chart's marks) or one typed into a field stays there.
   const target = event.composedPath()[0]
   const typing = target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
-  if (event.defaultPrevented || typing || event.metaKey || event.ctrlKey || event.altKey) return
+  // The dialog has already closed itself on Escape by now, so the key must not reach the overview too.
+  const dialogs = [helpDialog, blockedDialog]
+  const inDialog = dialogs.some((dialog) => dialog.open || event.composedPath().includes(dialog))
+  if (event.defaultPrevented || typing || event.metaKey || event.ctrlKey || event.altKey || inDialog) return
   // Space on a focused button presses that button.
   if (event.key === ' ' && target instanceof HTMLButtonElement) return
   if (overviewOpen()) return overviewKey(event)
@@ -368,6 +573,8 @@ addEventListener('keydown', (event) => {
     f: fullscreen,
     o: () => overview(true),
     d: () => mode(),
+    s: openSpeaker,
+    '?': help,
   }
   const action = keys[event.key]
   if (!action) return
@@ -392,6 +599,8 @@ function overviewKey(event) {
   } else if (event.key === 'Escape' || event.key === 'o') {
     event.preventDefault()
     return overview(false)
+  } else if (event.key === '?') {
+    return help()
   } else return
   event.preventDefault()
   const slide = slides[Math.min(Math.max(target, 0), slides.length - 1)]

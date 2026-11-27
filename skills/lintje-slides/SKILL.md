@@ -155,6 +155,9 @@ Kies op wat de dia moet doen. De velden en de grenzen staan in [`layouts.md`](la
   een van de soorten onder [Grafieken](#grafieken).
 - **Een tabel** heeft een `<caption>`, kopcellen met `scope` en hoogstens zes rijen. Een kolom met
   alleen getallen lijnt vanzelf rechts uit.
+- **Notities voor de spreker** staan in een `<aside data-notes>` als laatste in de dia, met
+  `<p>`, `<ul>`/`<ol>` en `<strong>`. Ze zijn geen veld: de zaal ziet ze nooit, alleen de
+  sprekersweergave. Schrijf er wat je wilt zeggen, niet wat al op de dia staat.
 - **Schrijf Nederlands**, in de taal van de zaal: B1 als het publiek breed is.
 
 ## Grafieken
@@ -211,5 +214,7 @@ In de browser zet `?check` achter de URL de meldingen op de dia zelf.
 ## Presenteren
 
 `npx lintje-slides serve` geeft de link naar elk deck. Bladeren gaat met de pijltjes, spatie of
-een clicker; F is volledig scherm, O het overzicht van alle dia's, D licht of donker. Het nummer
-van de dia staat in de URL (`#3`), dus een link opent op die dia.
+een clicker; F is volledig scherm, O het overzicht van alle dia's, D licht of donker, S de
+sprekersweergave: een tweede venster met de huidige en de volgende dia, de notities en de tijd, dat
+gelijk loopt met het deck. ? toont alle sneltoetsen. Het nummer van de dia staat in de URL (`#3`), dus een link opent op die
+dia.
