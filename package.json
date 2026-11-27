@@ -30,6 +30,7 @@
   "scripts": {
     "dev": "node bin/lintje-slides.mjs serve",
     "check": "node bin/lintje-slides.mjs check",
+    "test": "node --test test/*.test.mjs",
     "pdf": "node bin/lintje-slides.mjs pdf",
     "catalog": "node scripts/catalog.mjs",
     "release": "node scripts/release.mjs"
