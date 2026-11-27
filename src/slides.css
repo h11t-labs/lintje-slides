@@ -1665,21 +1665,27 @@ html.slides-overview,
   display: none;
 }
 
-/* The speaker's view (`?presenter`): the slide now on the left, the next one and the notes in a
-   column beside it, with the time and the controls above. slides.js lays each slide over its
-   frame; the rest is this grid. */
+/* The speaker's view (`?presenter`): a head that says at a glance where the talk is and how long it
+   runs, the slide now with the next one under it, and the notes down the right column. slides.js
+   lays each slide over its frame; the rest is this grid. */
 .slides-presenter {
   position: fixed;
   inset: 0;
   display: grid;
   grid-template:
     'bar bar' auto
-    'now next' auto
-    'now notes' minmax(0, 1fr)
+    'now notes' auto
+    'next notes' minmax(0, 1fr)
     / minmax(0, 3fr) minmax(0, 2fr);
-  gap: var(--space-6);
-  padding: var(--space-6);
+  gap: var(--space-6) var(--space-8);
+  padding: 0 var(--space-6) var(--space-6);
   color: var(--color-text-primary);
+  /* The slide now is capped in a low window, so the next one keeps its place under it. */
+  --slides-presenter-cap: 58vh;
+}
+
+.slides-presenter[hidden] {
+  display: none;
 }
 
 .slides-speaking .slide {
@@ -1692,23 +1698,44 @@ html.slides-overview,
   display: grid;
 }
 
+/* The head: the surface across the window, with the accent's line under it. */
 .slides-presenter__bar {
   grid-area: bar;
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-4);
+  gap: var(--space-4) var(--space-10);
   align-items: center;
+  margin-inline: calc(var(--space-6) * -1);
+  padding: var(--space-5) var(--space-6);
+  background: var(--color-bg-surface);
+  border-bottom: 2px solid var(--color-accent-line);
 }
 
-.slides-presenter[hidden] {
-  display: none;
+.slides-presenter__deck {
+  flex: 1 1 16rem;
+  display: grid;
+  gap: var(--space-1);
+  min-width: 0;
 }
 
 .slides-presenter__title {
-  flex: 1;
   margin: 0;
   color: var(--color-accent-text);
-  font: var(--text-section);
+  font: var(--text-h1);
+}
+
+.slides-presenter__position {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font: var(--text-ui);
+}
+
+/* The duration is the figure a speaker looks for: the largest thing in the head. The button that
+   sets it back stands on its line, the time of day smaller beside it. */
+.slides-presenter__times {
+  display: flex;
+  gap: var(--space-4);
+  align-items: end;
 }
 
 .slides-presenter__time {
@@ -1716,44 +1743,45 @@ html.slides-overview,
   margin: 0;
 }
 
-/* The button that sets the duration back stands beside the time. */
-.slides-presenter__time--duration {
-  grid-template-columns: auto auto;
-  column-gap: var(--space-2);
-  align-items: center;
-
-  & .slides-presenter__label {
-    grid-column: 1 / -1;
-  }
-}
-
-/* The button is higher than the time: pulled in, so both times stand on one line. */
-.slides-presenter__reset {
-  margin-block: calc(var(--space-2) * -1);
-}
-
-.slides-presenter__clock,
 .slides-presenter__elapsed {
-  font: var(--text-section);
+  font: var(--text-display);
   font-variant-numeric: tabular-nums;
 }
 
-/* The controls stand in the bar, always in view, without the overview. */
+.slides-presenter__clock {
+  font: var(--text-kpi);
+  font-variant-numeric: tabular-nums;
+}
+
+.slides-presenter__reset {
+  margin: 0 var(--space-4) var(--space-1) 0;
+}
+
+.slides-presenter__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+/* Paging has its own buttons here; the icons for the rest stand bare between them and Sluiten. */
 .slides-presenter .slides-nav {
   position: static;
-  margin: 0 0 0 auto;
+  margin: 0 var(--space-2);
+  background: none;
+  border: 0;
 }
 
 .slides-presenter .slides-nav.is-idle {
   opacity: 1;
 }
 
+.slides-presenter .slides-nav :is(.slides-nav__previous, .slides-nav__count, .slides-nav__next),
 .slides-speaking .slides-nav__speaker {
   display: none;
 }
 
 .slides-presenter__now,
-.slides-presenter__next,
 .slides-presenter__notes {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
@@ -1763,41 +1791,49 @@ html.slides-overview,
 
 .slides-presenter__now {
   grid-area: now;
+  align-self: start;
 }
 
+/* The next slide small, with its title beside it. */
 .slides-presenter__next {
   grid-area: next;
+  align-self: start;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: var(--space-5);
+  align-items: center;
+  min-height: 0;
 }
 
 .slides-presenter__frame {
   position: relative;
   min-width: 0;
   min-height: 0;
-}
-
-/* Both slides keep their shape; a low window caps both, the next one lower, so the notes under it
-   keep room and the slide now stays the larger. */
-.slides-presenter {
-  --slides-presenter-cap: 70vh;
-}
-
-.slides-presenter__now {
-  align-self: start;
-}
-
-.slides-presenter__frame {
   aspect-ratio: 16 / 9;
-  max-height: var(--slides-presenter-cap);
 }
 
-.slides-presenter__next .slides-presenter__frame {
-  max-height: calc(var(--slides-presenter-cap) * 3 / 8);
+.slides-presenter__now .slides-presenter__frame {
+  max-height: var(--slides-presenter-cap);
 }
 
 @media (max-height: 640px) {
   .slides-presenter {
-    --slides-presenter-cap: 60vh;
+    --slides-presenter-cap: 38vh;
   }
+}
+
+.slides-presenter__upcoming {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.slides-presenter__upcoming[hidden] {
+  display: none;
+}
+
+.slides-presenter__upcoming-title {
+  margin: 0;
+  font: var(--text-section);
 }
 
 .slides-presenter__label {
@@ -1830,13 +1866,17 @@ html.slides-overview,
 
 .slides-presenter__text {
   overflow: auto;
-  padding: var(--space-4) var(--space-5);
+  padding: var(--space-6) var(--space-8);
   background: var(--color-bg-surface);
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius);
-  font: var(--text-h2);
+  font: var(--text-section);
   font-weight: 400;
   line-height: 1.5;
+
+  & > * {
+    max-width: 34em;
+  }
 
   & :is(p, ul, ol) {
     margin: 0 0 var(--space-3);
@@ -1852,7 +1892,7 @@ html.slides-overview,
 }
 
 /* A narrow window stacks the view: the slide, the notes, then what comes next. */
-@media (max-width: 560px) {
+@media (max-width: 720px) {
   .slides-presenter {
     grid-template:
       'bar' auto
@@ -1860,14 +1900,7 @@ html.slides-overview,
       'notes' minmax(0, 1fr)
       'next' auto
       / minmax(0, 1fr);
-  }
-
-  .slides-presenter {
     --slides-presenter-cap: 30vh;
-  }
-
-  .slides-presenter__next .slides-presenter__frame {
-    max-height: calc(var(--slides-presenter-cap) * 2 / 3);
   }
 }
 

@@ -18,6 +18,8 @@ if (params.has('theme')) document.documentElement.dataset.theme = params.get('th
 
 const slides = [...document.querySelectorAll('.slide')]
 const deck = document.title
+// The chapter each slide stands in, as its footer says it; the speaker's view names it too.
+const chapters = []
 const organisations = {
   rijksoverheid: 'Rijksoverheid',
   marechaussee: 'Koninklijke Marechaussee',
@@ -38,6 +40,7 @@ function build() {
   slides.forEach((slide, index) => {
     const layout = LAYOUTS[slide.dataset.layout]
     if (slide.dataset.chapter !== undefined) chapter = slide.dataset.chapter
+    chapters[index] = chapter
     for (const img of slide.querySelectorAll('img[data-focus]')) {
       const [x, y] = img.dataset.focus.split(/\s+/)
       img.style.objectPosition = `${x}% ${y ?? 50}%`
@@ -456,11 +459,19 @@ if (presenting) {
   speaker.className = 'slides-presenter'
   speaker.innerHTML = `
     <div class="slides-presenter__bar">
-      <h1 class="slides-presenter__title"></h1>
-      <p class="slides-presenter__time"><span class="slides-presenter__label">Tijd</span><span class="slides-presenter__clock"></span></p>
-      <div class="slides-presenter__time slides-presenter__time--duration">
-        <span class="slides-presenter__label">Duur</span><span class="slides-presenter__elapsed"></span>
-        <lintje-icon-button class="slides-presenter__reset" icon="functioneel-refresh" label="Duur op nul"></lintje-icon-button>
+      <div class="slides-presenter__deck">
+        <h1 class="slides-presenter__title"></h1>
+        <p class="slides-presenter__position" aria-live="polite"></p>
+      </div>
+      <div class="slides-presenter__times">
+        <p class="slides-presenter__time"><span class="slides-presenter__label">Duur</span><span class="slides-presenter__elapsed"></span></p>
+        <lintje-button class="slides-presenter__reset" variant="secondary" size="compact" accessible-name="Op nul: de duur opnieuw laten beginnen">Op nul</lintje-button>
+        <p class="slides-presenter__time"><span class="slides-presenter__label">Tijd</span><span class="slides-presenter__clock"></span></p>
+      </div>
+      <div class="slides-presenter__controls">
+        <lintje-button class="slides-presenter__previous" variant="secondary" icon="functioneel-delta-naar-links">Vorige</lintje-button>
+        <lintje-button class="slides-presenter__forward" variant="primary" icon-right="functioneel-delta-naar-rechts">Volgende</lintje-button>
+        <lintje-button class="slides-presenter__close" variant="secondary" size="compact" icon="functioneel-kruis">Sluiten</lintje-button>
       </div>
     </div>
     <section class="slides-presenter__now" aria-label="Huidige dia">
@@ -468,8 +479,11 @@ if (presenting) {
       <div class="slides-presenter__frame"></div>
     </section>
     <section class="slides-presenter__next" aria-label="Volgende dia">
-      <p class="slides-presenter__label">Volgende</p>
       <div class="slides-presenter__frame"><p class="slides-presenter__end">Einde van de presentatie</p></div>
+      <div class="slides-presenter__upcoming">
+        <p class="slides-presenter__label">Volgende</p>
+        <p class="slides-presenter__upcoming-title"></p>
+      </div>
     </section>
     <section class="slides-presenter__notes" aria-label="Notities">
       <p class="slides-presenter__label">Notities</p>
@@ -477,7 +491,17 @@ if (presenting) {
     </section>`
   speaker.querySelector('.slides-presenter__title').textContent = deck
   document.body.prepend(speaker)
-  speaker.querySelector('.slides-presenter__bar').append(nav)
+  // The view's own buttons page and close; the icons for the rest stand between them.
+  speaker.querySelector('.slides-presenter__close').before(nav)
+  speaker.querySelector('.slides-presenter__previous').addEventListener('click', () => go(current() - 1))
+  speaker.querySelector('.slides-presenter__forward').addEventListener('click', () => go(current() + 1))
+  speaker.querySelector('.slides-presenter__close').addEventListener('click', () => {
+    close()
+    // A window the speaker opened by its address cannot close itself: it becomes the deck again.
+    const url = new URL(location.href)
+    url.searchParams.delete('presenter')
+    setTimeout(() => location.replace(url), 150)
+  })
   let start = Date.now()
   const clock = speaker.querySelector('.slides-presenter__clock')
   const elapsed = speaker.querySelector('.slides-presenter__elapsed')
@@ -517,6 +541,7 @@ function place() {
   nowFrame.setAttribute('aria-owns', now.id)
   const nextTitle = slides.find((slide) => slide.classList.contains('is-next'))?.querySelector(':scope > h1')?.textContent.trim()
   nextFrame.closest('section').setAttribute('aria-label', nextTitle ? `Volgende dia: ${nextTitle}` : 'Volgende dia')
+  speaker.querySelector('.slides-presenter__upcoming-title').textContent = nextTitle ?? ''
 }
 
 function speak(number) {
@@ -525,6 +550,10 @@ function speak(number) {
   if (notes?.textContent.trim()) box.replaceChildren(...notes.cloneNode(true).childNodes)
   else box.innerHTML = '<p class="slides-presenter__empty">Geen notities bij deze dia.</p>'
   speaker.querySelector('.slides-presenter__end').hidden = number < slides.length
+  speaker.querySelector('.slides-presenter__upcoming').hidden = number === slides.length
+  speaker.querySelector('.slides-presenter__position').textContent = [`Dia ${number} van ${slides.length}`, chapters[number - 1]].filter(Boolean).join(' · ')
+  speaker.querySelector('.slides-presenter__previous').disabled = number === 1
+  speaker.querySelector('.slides-presenter__forward').disabled = number === slides.length
   place()
 }
 
@@ -554,7 +583,7 @@ function overview(open = !overviewOpen()) {
   if (presenting) {
     speaker.hidden = open
     if (open) document.body.append(nav)
-    else speaker.querySelector('.slides-presenter__bar').append(nav)
+    else speaker.querySelector('.slides-presenter__close').before(nav)
     for (const slide of slides) {
       slide.inert = false
       slide.style.removeProperty('transform')
