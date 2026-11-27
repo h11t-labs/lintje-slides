@@ -1701,7 +1701,8 @@ html.slides-overview,
 
 /* The duration is the figure a speaker looks for: the largest thing in the head, the time of day
    smaller beside it. Two columns of a label over a figure: the labels share a line, the figures a
-   baseline. The link that sets the duration back stands quietly beside its label. */
+   baseline. The link that sets the duration back stands on the label's line, above the figure's
+   right end. */
 .slides-presenter__times {
   display: grid;
   grid-template-rows: auto auto;
@@ -1714,10 +1715,12 @@ html.slides-overview,
   }
 }
 
-.slides-presenter__label--duration {
+.slides-presenter__times .slides-presenter__label--duration {
   display: flex;
   gap: var(--space-3);
   align-items: baseline;
+  justify-content: space-between;
+  justify-self: stretch;
 }
 
 .slides-presenter__elapsed {

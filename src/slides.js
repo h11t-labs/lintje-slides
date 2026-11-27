@@ -452,7 +452,7 @@ if (presenting) {
       <div class="slides-presenter__times">
         <p class="slides-presenter__label slides-presenter__label--duration">
           Duur
-          <lintje-button class="slides-presenter__reset" variant="link" accessible-name="Op nul: de duur opnieuw laten beginnen">Op nul</lintje-button>
+          <lintje-button class="slides-presenter__reset" variant="link" accessible-name="Reset: de duur opnieuw laten beginnen">Reset</lintje-button>
         </p>
         <p class="slides-presenter__elapsed"></p>
         <p class="slides-presenter__label">Tijd</p>
