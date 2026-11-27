@@ -93,12 +93,12 @@ describe('lintje-slides', () => {
     it('writes an image per slide with --images', async () => {
       const { code, stdout } = await cli('check', '--images', 'goed')
       assert.deepEqual([code, lines(stdout)], [0, ["goed.html: 2 dia's, in orde", '  beelden in out/goed/']])
-      assert.deepEqual(await readdir(join(folder.dir, 'out/goed')), ['01.png', '02.png'])
+      assert.deepEqual((await readdir(join(folder.dir, 'out/goed'))).sort(), ['01.png', '02.png'])
     })
 
     it('keeps the dark images apart', async () => {
       await cli('check', '--images', '--dark', 'goed')
-      assert.deepEqual(await readdir(join(folder.dir, 'out/goed-dark')), ['01.png', '02.png'])
+      assert.deepEqual((await readdir(join(folder.dir, 'out/goed-dark'))).sort(), ['01.png', '02.png'])
     })
 
     it('says so when a page does not load as a deck', { timeout: 30000 }, async () => {
