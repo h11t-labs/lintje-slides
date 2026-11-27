@@ -13,6 +13,8 @@ const wall = (count) =>
   `<div data-field="photos">${`<figure><img src="${PHOTO}" alt="Een foto" /><figcaption>Een plek</figcaption></figure>`.repeat(count)}</div>`
 const table = (rows, caption = '<caption>Een tabel</caption>') =>
   `<div data-field="table"><table>${caption}<tbody>${Array.from({ length: rows }, (_, row) => `<tr><th scope="row">Rij ${row + 1}</th><td>${row}</td></tr>`).join('')}</tbody></table></div>`
+const chart = (spec) =>
+  `<div data-field="chart"><lintje-chart><script type="application/json">${typeof spec === 'string' ? spec : JSON.stringify({ description: 'Een grafiek', chart: spec })}</script></lintje-chart></div>`
 const cards = (texts) => `<div data-field="cards"><ul>${texts.map((text) => `<li><h3>Kop</h3> <p>${text}</p></li>`).join('\n')}</ul></div>`
 
 /** @type {[what: string, slide: string, findings: string[]][]} */
@@ -45,6 +47,17 @@ const CASES = [
   ['a photo too few', slide('photo-wall', wall(3)), [`veld "photos" heeft 4 foto's, nu 3`]],
 
   ['a chart field without a chart', slide('band-chart', '<div data-field="chart"><p>Een zin.</p></div>'), ['veld "chart" is een <lintje-chart>']],
+  ['a chart of its shape', slide('band-chart', chart({ kind: 'dumbbell', fromLabel: '2025', toLabel: '2026', rows: [{ label: 'Noord', from: 210, to: 130 }] })), []],
+  ['a chart whose JSON does not parse', slide('band-chart', chart('{ "chart": { "kind": "bar", }')), ['veld "chart": de JSON is ongeldig']],
+  ['a chart without its chart', slide('band-chart', chart('{ "description": "Een grafiek" }')), ['veld "chart": de JSON heeft geen "chart"']],
+  ['a chart without a kind', slide('band-chart', chart({ labels: ['A'], values: [1] })), ['veld "chart": de grafiek heeft geen "kind"']],
+  ['a chart of an unknown kind', slide('band-chart', chart({ kind: 'taart', labels: ['A'], values: [1] })), ['veld "chart": onbekende grafieksoort "taart"']],
+  ['a chart without a list of its kind', slide('band-chart', chart({ kind: 'grouped-bar', labels: ['A'] })), ['veld "chart": grouped-bar heeft een lijst in "series"']],
+  ['a chart with the fields of another kind', slide('band-chart', chart({ kind: 'horizontal-bar', labels: ['A'], values: [1] })), ['veld "chart": horizontal-bar heeft een lijst in "rows"']],
+  ['a chart with a series without values', slide('band-chart', chart({ kind: 'line', labels: ['A'], series: [{ label: 'Een', values: [1] }, { label: 'Twee' }] })), ['veld "chart": line heeft een lijst in "series[1].values"']],
+  // One chart, one finding, however much of its shape is wrong.
+  ['a chart without a list and a number', slide('band-chart', chart({ kind: 'radar', series: [] })), ['veld "chart": radar heeft een lijst in "axes" en een getal in "max"']],
+  ['a chart without two numbers', slide('band-chart', chart({ kind: 'target-progress', rows: [{ label: 'Noord' }, { label: 'Oost', value: '84' }] })), ['veld "chart": target-progress heeft getallen in "rows[0].value" en "rows[1].value"']],
   ['a table of the most rows', slide('band-table', table(6)), []],
   ['a table field without a table', slide('band-table', '<div data-field="table"><p>Een zin.</p></div>'), ['veld "table" is een <table>']],
   ['a table without a caption', slide('band-table', table(3, '')), ['veld "table": de tabel heeft een <caption>']],

@@ -13,7 +13,8 @@ De dertig indelingen staan in vijf ondergronden: foto, licht vlak, blauwe band, 
 beeld. De skill in [`skills/lintje-slides/`](skills/lintje-slides/SKILL.md) beschrijft ze
 allemaal, met hun velden en wanneer je welke kiest.
 [`examples/begrijpelijke-brieven.html`](examples/begrijpelijke-brieven.html) gebruikt elke
-indeling één keer.
+indeling één keer; [`examples/sneller-beslissen.html`](examples/sneller-beslissen.html) is een
+kort deck met de andere grafieksoorten die op een dia passen.
 
 ## Installeren
 

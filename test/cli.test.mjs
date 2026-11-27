@@ -16,6 +16,17 @@ const GOOD = deck([slide('band-list', list()), slide('band-list', list())])
 const FAULTY = deck([slide('band-list', list()), slide('band-list', list(words(25))), slide('band-lijst', '')])
 const FINDINGS = ['  dia 2 (band-list): veld "intro": hoogstens 24 woorden, nu 25', '  dia 3 (band-lijst): onbekende indeling "band-lijst"']
 
+// A chart of the wrong shape is a finding on its slide, and the only message: Lintje never throws.
+describe('a chart of the wrong shape', () => {
+  it('is a finding on its slide, without an error in the page', async () => {
+    const chart = '<div data-field="chart"><lintje-chart><script type="application/json">{ "chart": { "kind": "grouped-bar", "labels": ["A"] } }</script></lintje-chart></div>'
+    const folder = await project({ 'grafiek.html': deck([slide('band-list', list()), slide('band-chart', chart)]) })
+    const { code, stdout, stderr } = await run(folder.dir, 'check')
+    await folder.remove()
+    assert.deepEqual([code, stdout.trimEnd().split('\n'), stderr], [1, ['grafiek.html: 1 melding', '  dia 2 (band-chart): veld "chart": grouped-bar heeft een lijst in "series"'], ''])
+  })
+})
+
 describe('lintje-slides', () => {
   let folder
   before(async () => {
@@ -181,7 +192,7 @@ describe('the bundle of the example deck', () => {
   before(async () => {
     folder = await project({})
     await cp(join(repo, 'examples'), folder.dir, { recursive: true })
-    const { code, stdout } = await run(folder.dir, 'bundle')
+    const { code, stdout } = await run(folder.dir, 'bundle', 'begrijpelijke-brieven.html')
     assert.deepEqual([code, stdout], [0, 'out/begrijpelijke-brieven.html\n'])
     browser = await chromium.launch()
     const context = await browser.newContext({ offline: true, viewport: { width: 1280, height: 720 }, reducedMotion: 'reduce' })

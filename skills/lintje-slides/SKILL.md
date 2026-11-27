@@ -187,7 +187,9 @@ De grafiek staat in het veld `chart` van `band-chart`, als JSON in een `<script>
 </div>
 ```
 
-De vorm van `chart` hangt af van de soort; een verkeerde vorm laat de pagina vastlopen.
+De vorm van `chart` hangt af van de soort; de controle meldt een verkeerde vorm bij zijn dia.
+`node_modules/@lintje/slides/examples/sneller-beslissen.html` toont de zes soorten onder `pie`
+gevuld, `begrijpelijke-brieven.html` een `grouped-bar`.
 
 | soort | wanneer | vorm |
 |---|---|---|
@@ -197,10 +199,25 @@ De vorm van `chart` hangt af van de soort; een verkeerde vorm laat de pagina vas
 | `line` | een verloop in de tijd | `"labels": [...]`, `"series": [{ "label", "values": [...], "color" }]`; `null` voor een ontbrekend punt |
 | `horizontal-bar` | categorieën met lange namen, gerangschikt | `"rows": [{ "label", "value" }]`, `"color"` |
 | `pie` | twee tot vier delen van één geheel | `"segments": [{ "label", "value", "color" }]` |
+| `target-progress` | een paar onderdelen tegen één doel, in procenten; tot vijf | `"target": 80`, `"rows": [{ "label", "value" }]`; wie het doel haalt, kleurt groen, de rest oranje |
+| `dumbbell` | één maat per groep op twee momenten, als de verandering de boodschap is; vijf of zes groepen | `"fromLabel": "2025"`, `"toLabel": "2026"`, `"rows": [{ "label", "from", "to" }]`, `"color"`, `"unit"` |
+| `stacked-area` | de delen van één totaal door de tijd, als het totaal de boodschap is; twee of drie delen | `"labels": [...]`, `"series": [{ "label", "values": [...] }]`, één `"color"` voor allemaal: de delen krijgen zijn tinten |
+| `histogram` | hoe waarden over klassen vallen, zoals doorlooptijden, met de mediaan of een termijn; tot vijf klassen | `"bins": [{ "from", "to", "count" }]` (`"to": null` voor een open laatste klasse), `"label"`, `"axisTitle"`, `"xTitle"`, `"unit"`, `"median"`, `"threshold"`, `"thresholdLabel"` |
+| `heatmap` | één waarde over twee indelingen, zoals dag en dagdeel, als één vak eruit springt; tot drie rijen en vijf kolommen | `"columnLabels": [...]`, `"rowLabels": [...]`, `"values": [[...], ...]` met een rij per `rowLabels`, `"unit"` |
+| `scatter` | of twee maten samenhangen, met een punt per eenheid en zijn naam; tot acht punten | `"axisTitle"`, `"xTitle"`, `"series": [{ "label", "color", "points": [{ "label", "x", "y" }] }]`, `"dataLabels"` met de naam van elk punt, `"threshold"`, `"thresholdLabel"` |
 
 Eén reeks mag, met een eigen kleur; grijs is alleen voor een vergelijking ernaast. `"axisTitle"`
-noemt de eenheid langs de as. Meer soorten en velden staan in Lintje, dat het pakket meebrengt:
+noemt de eenheid langs de as. Meer velden staan in Lintje, dat het pakket meebrengt:
 `node_modules/lintje/dist-elements/types/components/shared/charts/shared/types.d.ts`.
+
+Lintje kent ook soorten die **niet op een dia passen**: ze vragen van dichtbij lezen.
+
+- `dual-axis`: twee schalen; waar de lijn de staven kruist, kiest de schaal en niet de data. Neem
+  twee dia's, of een `line` als beide maten dezelfde eenheid hebben.
+- `radar`: loopt van de dia, en met `"small"` zijn de assen te klein. Neem `horizontal-bar` of
+  `grouped-bar`.
+- `treemap`: de kleine vakken verliezen hun getal. Neem `pie` of `horizontal-bar`.
+- `sankey`: de stromen kruisen, en in donker verdwijnen ze bijna. Neem `stacked-bar`.
 
 ## Meldingen
 
@@ -219,7 +236,10 @@ noemt de eenheid langs de as. Meer soorten en velden staan in Lintje, dat het pa
 | `de foto heeft een alt-tekst` | Beschrijf wat er op de foto staat. |
 | `de foto … laadt niet` | Zet het bestand op het pad uit `src`, of zet het grijze vlak op zijn plek. |
 | `data-controls="…" bestaat niet` | Neem `bottom`, `top`, `left` of `right`, of haal het attribuut weg. |
-| `fout in de pagina, vaak de data van een grafiek …` | Vergelijk de JSON van elke grafiek met [Grafieken](#grafieken); de melding noemt geen dia. |
+| `veld "chart": de JSON is ongeldig` | Zoek de fout in de JSON: vaak een komma te veel of te weinig, of een aanhalingsteken dat ontbreekt. |
+| `veld "chart": onbekende grafieksoort "…"` | Zet in `"kind"` een soort uit [Grafieken](#grafieken); zo ook bij `de grafiek heeft geen "kind"` en `de JSON heeft geen "chart"`. |
+| `veld "chart": bar heeft een lijst in "…"` of `een getal in "…"` | Het pad wijst de plek in `chart` aan (`"series[1].values"` is de tweede reeks): geef die de vorm uit [Grafieken](#grafieken). |
+| `fout in de pagina …` | Een fout die de controle niet bij een dia vindt; tussen haakjes staat de oorzaak. Staat er een grafiek in het deck, vergelijk dan zijn JSON met [Grafieken](#grafieken). |
 
 Eén oorzaak geeft één melding: wat de woorden, het vak en de punten van een veld zeggen, staat
 in één regel. In de browser zet `?check` achter de URL dezelfde meldingen op de dia zelf.
