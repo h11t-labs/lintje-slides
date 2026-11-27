@@ -286,7 +286,6 @@ function show(number) {
   const title = slides[number - 1]?.querySelector(':scope > h1')?.textContent.trim()
   document.title = `${presenting ? 'Spreker: ' : ''}${title ?? deck} (${number}/${slides.length})`
   if (presenting) speak(number)
-  tell()
 }
 
 function go(number) {
@@ -347,8 +346,15 @@ function openSpeaker() {
   if (presenting) return
   const url = new URL(location.href)
   url.searchParams.set('presenter', '')
-  speakerWindow = open(url, `lintje-slides ${location.pathname}`, 'popup,width=1280,height=800')
-  speakerWindow?.focus()
+  // Find the speaker window by name first: opening its URL again would reload it and reset the time.
+  speakerWindow = open('', `lintje-slides ${location.pathname}`, 'popup,width=1280,height=800')
+  if (!speakerWindow) return
+  try {
+    if (speakerWindow.location.href === 'about:blank') speakerWindow.location.href = url.href
+  } catch {
+    // An existing window over file:// is another origin; it is already the speaker's view.
+  }
+  speakerWindow.focus()
 }
 
 let speaker
@@ -490,7 +496,11 @@ for (const slide of slides) {
   slide.addEventListener('click', () => overviewOpen() && choose(slide))
 }
 
-addEventListener('hashchange', () => show(current()))
+// Only a change tells the other window: a window that just loaded must not pull the others back.
+addEventListener('hashchange', () => {
+  show(current())
+  tell()
+})
 addEventListener('resize', () => {
   scale()
   if (overviewOpen()) overviewSize()
@@ -509,7 +519,9 @@ addEventListener('keydown', (event) => {
   // A key a Lintje element already handled (a chart's marks) or one typed into a field stays there.
   const target = event.composedPath()[0]
   const typing = target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
-  if (event.defaultPrevented || typing || event.metaKey || event.ctrlKey || event.altKey || helpDialog.open) return
+  // The dialog has already closed itself on Escape by now, so the key must not reach the overview too.
+  const inDialog = event.composedPath().includes(helpDialog)
+  if (event.defaultPrevented || typing || event.metaKey || event.ctrlKey || event.altKey || helpDialog.open || inDialog) return
   // Space on a focused button presses that button.
   if (event.key === ' ' && target instanceof HTMLButtonElement) return
   if (overviewOpen()) return overviewKey(event)
