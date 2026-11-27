@@ -1,4 +1,4 @@
-// The 30 layouts of a deck: what each one is for and which fields it takes. slides.js reads it to
+// The 33 layouts of a deck: what each one is for and which fields it takes. slides.js reads it to
 // check a slide, scripts/catalog.mjs to write the handbook's table. The look lives in slides.css.
 //
 // A field is `[data-field]` inside the slide; the title is always the slide's `<h1>`.
@@ -26,6 +26,15 @@ export const LAYOUTS = {
       payoff,
     },
   },
+  'blue-title': {
+    name: 'Blauw · Titel', ground: 'Titel en slot', footer: false, logo: true, titleWords: 4,
+    use: 'De eerste dia zonder foto: de titel op het blauwe vlak.',
+    fields: {
+      subtitle: { kind: 'text', required: true, words: 14 },
+      speaker: { kind: 'text', words: 16, parts: 'spreker en datum, elk een <p>' },
+      payoff,
+    },
+  },
   'photo-closing-block': {
     name: 'Foto · Afsluiting met blauw blok', ground: 'Titel en slot', footer: false, logo: true, title: 'Bedankt',
     use: 'De laatste dia, als spiegel van de titeldia.',
@@ -35,6 +44,11 @@ export const LAYOUTS = {
     name: 'Foto · Afsluiting met paneel', ground: 'Titel en slot', footer: false, logo: true, title: 'Bedankt',
     use: 'De laatste dia, rustiger: een wit paneel op de foto.',
     fields: { photo: photo, text: { kind: 'text', required: true, words: 20 }, contact, payoff },
+  },
+  'blue-closing': {
+    name: 'Blauw · Afsluiting', ground: 'Titel en slot', footer: false, logo: true, title: 'Bedankt',
+    use: 'De laatste dia zonder foto, als spiegel van `blue-title`.',
+    fields: { text: { kind: 'text', required: true, words: 20 }, contact, payoff },
   },
   'blue-closing-photo-strip': {
     name: 'Blauw · Afsluiting met fotostrook', ground: 'Titel en slot', footer: false, logo: true, title: 'Bedankt',
@@ -163,6 +177,11 @@ export const LAYOUTS = {
     name: 'Band · Tabel', ground: 'Band',
     use: 'Een kleine tabel, tot zes rijen.',
     fields: { table: { kind: 'table', required: true, items: [1, 6] } },
+  },
+  'blue-divider': {
+    name: 'Blauw · Tussenpagina met nummer', ground: 'Blauw',
+    use: 'Het begin van een hoofdstuk, zonder foto: een groot nummer op blauw.',
+    fields: { number: { kind: 'label', required: true, words: 1 }, label: { kind: 'label', words: 3 }, text: { kind: 'text', words: 24 } },
   },
   'blue-three-points': {
     name: 'Blauw · Drie punten', ground: 'Blauw',

@@ -1,11 +1,11 @@
 # @lintje/slides
 
 Presentaties in HTML met [Lintje](https://github.com/h11t-labs/lintje), in de nieuwe
-Rijkshuisstijl. Een presentatie is één HTML-bestand. Elke dia kiest een van dertig indelingen en
+Rijkshuisstijl. Een presentatie is één HTML-bestand. Elke dia kiest een van drieëndertig indelingen en
 vult die met tekst, foto's en data. De opmaak komt uit de indeling, dus een mens en een agent
 maken dezelfde dia's. Je presenteert in de browser en exporteert naar pdf, in licht en donker.
 
-De dertig indelingen staan in vijf ondergronden: foto, licht vlak, blauwe band, vol blauw en half
+De drieëndertig indelingen staan in vijf ondergronden: foto, licht vlak, blauwe band, vol blauw en half
 beeld. De skill in [`skills/lintje-slides/`](skills/lintje-slides/SKILL.md) beschrijft ze
 allemaal, met hun velden en wanneer je welke kiest.
 [`examples/begrijpelijke-brieven.html`](examples/begrijpelijke-brieven.html) gebruikt elke
