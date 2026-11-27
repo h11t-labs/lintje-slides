@@ -1472,6 +1472,16 @@ body {
   from { opacity: 0; transform: translateY(20px); }
 }
 
+@keyframes slide-line-down {
+  from { clip-path: inset(0 0 100% 0); }
+  to { clip-path: inset(0); }
+}
+
+@keyframes slide-line-across {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0); }
+}
+
 @media screen and (prefers-reduced-motion: no-preference) {
   .slide {
     --slide-ease: cubic-bezier(0.33, 1, 0.68, 1);
@@ -1514,6 +1524,20 @@ body {
 
     & [data-field] > :is(ul, ol) > li {
       animation: slide-rise 700ms var(--slide-ease) calc(var(--slide-delay) + 150ms + var(--slide-item)) backwards;
+    }
+
+    /* A line that joins the items is drawn along with them: it reaches each item as that one
+       arrives, at the pace the items follow each other. */
+    &[data-layout='plain-steps'] [data-field='steps'] > ol::before {
+      animation: slide-line-down 240ms linear calc(var(--slide-delay) + 350ms) backwards;
+    }
+
+    &[data-layout='plain-steps'] [data-field='steps'] > ol:has(> li:nth-child(4))::before {
+      animation-duration: 360ms;
+    }
+
+    &[data-layout='plain-schedule'] > [data-field='moments']::before {
+      animation: slide-line-across 360ms linear calc(var(--slide-delay) + 350ms) backwards;
     }
   }
 }

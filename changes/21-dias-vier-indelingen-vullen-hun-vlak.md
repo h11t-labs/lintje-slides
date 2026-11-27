@@ -9,3 +9,4 @@
 ### Opgelost
 
 - Een titel van meer regels duwt in de halve indelingen en bij de stappen de tekst omlaag, in plaats van eroverheen te lopen. (#21)
+- Bij de stappen en de planning tekent de verbindingslijn mee met de onderdelen, in plaats van er in één keer te staan terwijl de nummers nog binnenkomen. (#21)
