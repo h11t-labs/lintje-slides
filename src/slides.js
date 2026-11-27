@@ -1,8 +1,5 @@
-// Turns a page of <section class="slide" data-layout="…"> into a deck: scaling, paging, the
-// foot, the emblem, and the check of every slide against its layout. It loads only the Lintje
-// tags a deck draws, each from its own file, so a bundle carries no more; they share one copy of
-// Lintje's state with core.js. Lintje lives at one URL, from the root of the project, where
-// lintje-slides serves the copy it was installed with.
+// Turns a page of <section class="slide" data-layout="…"> into a deck. Only the Lintje tags a
+// deck draws load, each from its own file, so a bundle carries no more than that.
 import { setIconSource } from '/node_modules/lintje/dist-elements/core.js'
 import '/node_modules/lintje/dist-elements/tag/dialog.js'
 import '/node_modules/lintje/dist-elements/tag/icon-button.js'

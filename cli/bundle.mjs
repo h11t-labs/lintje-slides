@@ -1,7 +1,7 @@
 // Writes each deck to out/<deck>.html: one file that opens without a server or a network. Modules
 // go in an import map as data URLs under bare names (bundle/node_modules/…), because a data URL
 // has no folder to resolve a path in. Like the PDF, a deck with findings gets no bundle.
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { dirname, extname, relative, resolve } from 'node:path'
 import { eachDeck, printFindings } from './browser.mjs'
@@ -36,35 +36,50 @@ export async function bundle(decks) {
 async function inline(deckFile, loaded) {
   let html = await readFile(deckFile, 'utf8')
   const icons = new Set(loaded.map((url) => /\/dist-icons\/([^/?]+)\.svg/.exec(url)?.[1]).filter(Boolean).map(decodeURIComponent))
+  // Every theme's emblem: ?theme= on the bundle asks for another one than the build loaded.
+  const iconFolder = fileFor('/node_modules/lintje/dist-icons/')
+  for (const file of await readdir(iconFolder)) if (file.startsWith('embleem-')) icons.add(file.replace(/\.svg$/, ''))
 
   html = await replace(html, /<link\b[^>]*\srel=["']?stylesheet\b[^>]*>/g, async (tag) => {
     const href = attribute(tag, 'href')
     return href ? `<style>\n${await css(locate(href, deckFile))}\n</style>` : tag
   })
 
+  // One import map for every module script, before the first: a page takes only one everywhere.
+  const imports = {}
+  const chart = loaded.some((url) => url.includes('/dist-elements/tag/chart.js'))
+  let first = true
   html = await replace(html, /<script\b[^>]*>\s*<\/script>/g, async (tag) => {
     const src = attribute(tag, 'src')
     if (!src || attribute(tag, 'type') !== 'module') return tag
     const scriptFile = locate(src, deckFile)
     const source = await readFile(scriptFile, 'utf8')
-    for (const [, icon] of source.matchAll(/['"`]((?:functioneel|multimedia)-[a-z0-9-]+)['"`]/g)) icons.add(icon)
-    for (const [, icon] of source.matchAll(/icon="((?:functioneel|multimedia)-[a-z0-9-]+)"/g)) icons.add(icon)
-    const imports = {}
-    const entry = await modules(source, scriptFile, imports, { dynamic: html.includes('<lintje-chart') })
-    return `<script type="importmap">${JSON.stringify({ imports })}</script>\n<script type="module">\n${script(entry)}\n</script>`
+    // Icons the script may show later (a button that changes, the speaker's view): any name in it
+    // that is an icon file.
+    for (const [, name] of source.matchAll(/['"`=]([a-z]+(?:-[a-z0-9]+)+)['"`]/g)) {
+      if (existsSync(resolve(iconFolder, `${name}.svg`))) icons.add(name)
+    }
+    const entry = await modules(source, scriptFile, imports, { dynamic: chart })
+    const map = first ? '<script type="importmap">@@IMPORTMAP@@</script>\n' : ''
+    first = false
+    return `${map}<script type="module">\n${script(entry)}\n</script>`
   })
+  html = html.replace('@@IMPORTMAP@@', () => script(JSON.stringify({ imports })))
 
   // A photo goes in once, however often the deck shows it: a script sets each <img> from the
-  // list before the deck's module runs.
+  // list before the deck's module runs. Only its src goes in: srcset and <source> would point
+  // outside, and the src is the photo the deck checks.
+  html = html.replace(/<source\b[^>]*>/g, (tag) => (/\ssrcset=/.test(tag) ? '' : tag))
   const photos = []
   html = html.replace(/<img\b[^>]*>/g, (tag) => {
+    tag = tag.replace(/\s(srcset|sizes)=(["'])[^"']*\2/g, '')
     const src = attribute(tag, 'src')
-    if (!src || /^(data:|https?:)/.test(src)) return tag
-    const file = locate(src, deckFile)
-    if (!photos.includes(file)) photos.push(file)
-    return tag.replace(/\ssrc=(["'])[^"']*\1/, ` data-bundle-photo="${photos.indexOf(file)}"`)
+    if (!src || src.startsWith('data:')) return tag
+    const photo = /^(https?:)?\/\//.test(src) ? (src.startsWith('//') ? `https:${src}` : src) : locate(src, deckFile)
+    if (!photos.includes(photo)) photos.push(photo)
+    return tag.replace(/\ssrc=(["'])[^"']*\1/, ` data-bundle-photo="${photos.indexOf(photo)}"`)
   })
-  const photoUrls = await Promise.all(photos.map(dataUrl))
+  const photoUrls = await Promise.all(photos.map((photo) => (photo.startsWith('https:') || photo.startsWith('http:') ? download(photo) : dataUrl(photo))))
   const setPhotos = `<script>
 {
   const photos = ${JSON.stringify(photoUrls)}
@@ -81,7 +96,7 @@ async function inline(deckFile, loaded) {
   }
   const shim = `<script>
 {
-  const icons = ${JSON.stringify(svgs)}
+  const icons = ${script(JSON.stringify(svgs))}
   const fetchFile = window.fetch.bind(window)
   window.fetch = (input, init) => {
     const name = /\\/dist-icons\\/([^/?]+)\\.svg/.exec(input instanceof Request ? input.url : String(input))?.[1]
@@ -90,12 +105,12 @@ async function inline(deckFile, loaded) {
   }
 }
 </script>`
-  html = html.replace(/<head[^>]*>/, (head) => `${head}\n${script(shim, false)}`)
+  html = html.replace(/<head[^>]*>/, (head) => `${head}\n${shim}`)
 
   // What the bundle could not take in would fail over file:// without a word, so it is an error.
   const outside = [...html.matchAll(/<(?:link|script|img|source)\b[^>]*>/g)]
     .map(([tag]) => attribute(tag, 'href') ?? attribute(tag, 'src'))
-    .filter((url) => url && !/^(data:|https?:|#)/.test(url))
+    .filter((url) => url && !/^(data:|#)/.test(url))
   if (outside.length) throw new Error(`verwijst nog naar ${[...new Set(outside)].join(', ')}`)
   return html
 }
@@ -149,9 +164,18 @@ async function dataUrl(file) {
   return `data:${type.split(';')[0]};base64,${(await readFile(file)).toString('base64')}`
 }
 
-// Script text inside the page: a closing tag in it would end the element early.
-function script(source, escape = true) {
-  return escape ? source.replaceAll('</script', '<\\/script') : source
+// A photo from the web goes in too: the bundle opens without a network.
+async function download(url) {
+  const response = await fetch(url)
+  if (!response.ok) throw new Error(`${url} geeft ${response.status}`)
+  const type = response.headers.get('content-type')?.split(';')[0] ?? 'application/octet-stream'
+  return `data:${type};base64,${Buffer.from(await response.arrayBuffer()).toString('base64')}`
+}
+
+// Script text inside the page: a closing tag in it would end the element early. In code it can
+// only stand in a string, a template or a regular expression, where \\/ means /.
+function script(source) {
+  return source.replace(/<\/(script)/gi, '<\\/$1')
 }
 
 function attribute(tag, name) {

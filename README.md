@@ -80,7 +80,10 @@ mailen of op een USB-stick zetten, maak dan een bundel: `out/<deck>.html` heeft 
 scripts, Lintje, RijksSans, de iconen en de foto's in zich, opent met een dubbelklik zonder
 server of internet, en doet alles wat het deck via de server doet, de sprekersweergave ook. Van
 Lintje gaat alleen mee wat het deck tekent, de grafiek alleen als er een is; de rest van de
-grootte zijn vooral de foto's. Zonder pad nemen de
+grootte zijn vooral de foto's. Een foto van het web gaat er ook in; van een foto gaat alleen de
+`src` mee, niet `srcset`. Staat er nog iets buiten de bundel, of ontbreekt een bestand, dan meldt
+de opdracht dat en schrijft hij geen bundel. Hebben twee decks dezelfde naam, dan krijgt hun
+bestand in `out/` de map erbij. Zonder pad nemen de
 opdrachten elk deck in de map en eronder: elk `.html`-bestand met `<section class="slide">`,
 buiten `node_modules/` en `out/`. Een andere server die de map van het project serveert, werkt
 ook; `lintje-slides serve` levert altijd de versie van Lintje die bij het pakket hoort.
