@@ -171,7 +171,7 @@ function checkSlide(slide) {
   }
   // Styling belongs to the layout: a style or class in the content is a way around it.
   for (const node of slide.querySelectorAll('[style], [class]')) {
-    if (node.closest('lintje-chart, .slide__footer, .slide__logo, .slide__finding, .slide__number') || node === slide) continue
+    if (node.closest('lintje-chart, aside[data-notes], .slide__footer, .slide__logo, .slide__finding, .slide__number') || node === slide) continue
     if (node.hasAttribute('class')) report(`<${node.tagName.toLowerCase()} class>: de opmaak komt uit de indeling`, node)
     if (node.hasAttribute('style') && !node.matches('img[data-focus]')) report(`<${node.tagName.toLowerCase()} style>: de opmaak komt uit de indeling`, node)
   }
@@ -243,8 +243,8 @@ document.body.append(nav)
 
 // The keys, for the help window; the keydown handler below does what they say.
 const shortcuts = [
-  [['→', '↓', 'Spatie'], 'Volgende dia'],
-  [['←', '↑', 'Shift Spatie'], 'Vorige dia'],
+  [['→', '↓', 'PgDn', 'Spatie'], 'Volgende dia'],
+  [['←', '↑', 'PgUp', 'Shift Spatie'], 'Vorige dia'],
   [['Home', 'End'], 'Eerste of laatste dia'],
   [['O'], "Alle dia's; Escape sluit het overzicht"],
   [['F'], 'Volledig scherm'],
@@ -260,6 +260,12 @@ helpDialog.innerHTML = `<dl class="slides-keys">${shortcuts
   .join('')}</dl>`
 helpDialog.addEventListener('lintje-close', () => (helpDialog.open = false))
 document.body.append(helpDialog)
+
+const blockedDialog = document.createElement('lintje-dialog')
+blockedDialog.setAttribute('heading', 'Tweede venster tegengehouden')
+blockedDialog.innerHTML = '<p>De browser hield de sprekersweergave tegen. Sta pop-ups toe voor deze pagina en druk weer op S.</p>'
+blockedDialog.addEventListener('lintje-close', () => (blockedDialog.open = false))
+document.body.append(blockedDialog)
 
 function help() {
   helpDialog.open = true
@@ -303,13 +309,13 @@ function fullscreen() {
 }
 
 // Light or dark lives in the URL (?mode=dark) like the slide number, so a link keeps it.
-function mode(dark = root.dataset.mode !== 'dark') {
+function mode(dark = root.dataset.mode !== 'dark', { quiet = false } = {}) {
   root.dataset.mode = dark ? 'dark' : 'light'
   modeButton.pressed = dark
   const url = new URL(location.href)
   url.searchParams.set('mode', dark ? 'dark' : 'light')
   history.replaceState(null, '', url)
-  tell()
+  if (!quiet) tell()
 }
 
 // --- The speaker's view ------------------------------------------------------------------------
@@ -326,21 +332,33 @@ function peers() {
   return [window.opener, speakerWindow].filter((peer) => peer && !peer.closed)
 }
 
+// Each message comes twice, by channel and by postMessage, and two quick steps can cross: a window
+// follows only a message newer than the last it sent or followed, and does not pass it on.
+let latest = 0
+let following = null
+
 function tell() {
-  const message = { lintjeSlides: 1, slide: current(), dark: root.dataset.mode === 'dark' }
+  latest = Math.max(Date.now(), latest + 1)
+  const message = { lintjeSlides: 1, at: latest, slide: current(), dark: root.dataset.mode === 'dark' }
   channel?.postMessage(message)
   for (const peer of peers()) peer.postMessage(message, '*')
 }
 
 function heard(message) {
-  if (message?.lintjeSlides !== 1) return
-  // The slide first: mode() tells the other window again, and must tell it the new slide.
+  if (message?.lintjeSlides !== 1 || !(message.at > latest)) return
+  latest = message.at
+  if (message.dark !== (root.dataset.mode === 'dark')) mode(message.dark, { quiet: true })
+  if (message.slide !== current()) following = message.slide
   go(message.slide)
-  if (message.dark !== (root.dataset.mode === 'dark')) mode(message.dark)
 }
 
 channel?.addEventListener('message', (event) => heard(event.data))
-addEventListener('message', (event) => peers().includes(event.source) && heard(event.data))
+addEventListener('message', (event) => {
+  if (!event.source || event.source === window || event.data?.lintjeSlides !== 1) return
+  // Over file:// a reloaded deck has lost its speaker window; the window that writes to it is that.
+  if (!presenting && event.source !== window.opener) speakerWindow = event.source
+  heard(event.data)
+})
 
 function openSpeaker() {
   if (presenting) return
@@ -348,7 +366,10 @@ function openSpeaker() {
   url.searchParams.set('presenter', '')
   // Find the speaker window by name first: opening its URL again would reload it and reset the time.
   speakerWindow = open('', `lintje-slides ${location.pathname}`, 'popup,width=1280,height=800')
-  if (!speakerWindow) return
+  if (!speakerWindow) {
+    blockedDialog.open = true
+    return
+  }
   try {
     if (speakerWindow.location.href === 'about:blank') speakerWindow.location.href = url.href
   } catch {
@@ -419,6 +440,12 @@ function place() {
     const y = box.top
     slide.style.transform = `translate(${x}px, ${y}px) scale(${factor})`
   })
+  // The slide stands over its frame but elsewhere in the page; a screen reader finds it in the frame.
+  const now = slides.find((slide) => slide.classList.contains('is-current'))
+  now.id ||= `slide-${slides.indexOf(now) + 1}`
+  nowFrame.setAttribute('aria-owns', now.id)
+  const nextTitle = slides.find((slide) => slide.classList.contains('is-next'))?.querySelector(':scope > h1')?.textContent.trim()
+  nextFrame.closest('section').setAttribute('aria-label', nextTitle ? `Volgende dia: ${nextTitle}` : 'Volgende dia')
 }
 
 function speak(number) {
@@ -461,6 +488,7 @@ function overview(open = !overviewOpen()) {
       slide.inert = false
       slide.style.removeProperty('transform')
     }
+    for (const frame of speaker.querySelectorAll('.slides-presenter__frame')) frame.removeAttribute('aria-owns')
   }
   overviewButton.icon = open ? 'functioneel-kruis' : 'functioneel-tegelweergave'
   overviewButton.label = open ? 'Overzicht sluiten' : "Alle dia's"
@@ -483,7 +511,12 @@ function overview(open = !overviewOpen()) {
     slide.scrollIntoView({ block: 'center' })
   } else {
     scrollTo(0, 0)
-    if (presenting) place()
+    if (presenting) {
+      place()
+      // The focused slide is no longer a button and the controls moved back into the bar.
+      // lintje-icon-button does not pass focus() on to its button.
+      overviewButton.shadowRoot?.querySelector('button')?.focus()
+    }
   }
 }
 
@@ -499,7 +532,8 @@ for (const slide of slides) {
 // Only a change tells the other window: a window that just loaded must not pull the others back.
 addEventListener('hashchange', () => {
   show(current())
-  tell()
+  if (following === current()) following = null
+  else tell()
 })
 addEventListener('resize', () => {
   scale()
@@ -520,8 +554,9 @@ addEventListener('keydown', (event) => {
   const target = event.composedPath()[0]
   const typing = target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))
   // The dialog has already closed itself on Escape by now, so the key must not reach the overview too.
-  const inDialog = event.composedPath().includes(helpDialog)
-  if (event.defaultPrevented || typing || event.metaKey || event.ctrlKey || event.altKey || helpDialog.open || inDialog) return
+  const dialogs = [helpDialog, blockedDialog]
+  const inDialog = dialogs.some((dialog) => dialog.open || event.composedPath().includes(dialog))
+  if (event.defaultPrevented || typing || event.metaKey || event.ctrlKey || event.altKey || inDialog) return
   // Space on a focused button presses that button.
   if (event.key === ' ' && target instanceof HTMLButtonElement) return
   if (overviewOpen()) return overviewKey(event)
@@ -564,6 +599,8 @@ function overviewKey(event) {
   } else if (event.key === 'Escape' || event.key === 'o') {
     event.preventDefault()
     return overview(false)
+  } else if (event.key === '?') {
+    return help()
   } else return
   event.preventDefault()
   const slide = slides[Math.min(Math.max(target, 0), slides.length - 1)]

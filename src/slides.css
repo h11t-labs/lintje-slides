@@ -1734,13 +1734,25 @@ html.slides-overview,
   min-height: 0;
 }
 
-/* Both slides keep their shape; a low window caps the slide now, so the notes keep room. */
-.slides-presenter__frame {
-  aspect-ratio: 16 / 9;
+/* Both slides keep their shape; a low window caps both, the next at two thirds of the slide now,
+   so the notes keep room and the slide now stays the larger. */
+.slides-presenter {
+  --slides-presenter-cap: 55vh;
 }
 
-.slides-presenter__now .slides-presenter__frame {
-  max-height: 55vh;
+.slides-presenter__frame {
+  aspect-ratio: 16 / 9;
+  max-height: var(--slides-presenter-cap);
+}
+
+.slides-presenter__next .slides-presenter__frame {
+  max-height: calc(var(--slides-presenter-cap) * 2 / 3);
+}
+
+@media (max-height: 640px) {
+  .slides-presenter {
+    --slides-presenter-cap: 40vh;
+  }
 }
 
 .slides-presenter__label {
@@ -1795,7 +1807,7 @@ html.slides-overview,
 }
 
 /* A narrow window stacks the view: the slide, the notes, then what comes next. */
-@media (max-width: 800px) {
+@media (max-width: 560px) {
   .slides-presenter {
     grid-template:
       'bar' auto
@@ -1805,20 +1817,22 @@ html.slides-overview,
       / minmax(0, 1fr);
   }
 
-  .slides-presenter__next .slides-presenter__frame {
-    max-height: 20vh;
+  .slides-presenter {
+    --slides-presenter-cap: 30vh;
   }
 }
 
 /* The help window: each key, then what it does. */
 .slides-keys {
   display: grid;
+  grid-template-columns: max-content 1fr;
   margin: 0;
 }
 
 .slides-keys__row {
   display: grid;
-  grid-template-columns: 12rem 1fr;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
   gap: var(--space-4);
   padding-block: var(--space-2);
   border-bottom: 1px solid var(--color-border-default);
@@ -1878,8 +1892,14 @@ html.slides-pdf,
 
 @media print {
   .slides-nav,
+  .slides-presenter,
   .slide__finding {
     display: none;
+  }
+
+  /* The speaker's view lays its two slides out inline; on paper every slide stands as usual. */
+  .slides-speaking .slide {
+    transform: none !important;
   }
 
   html,
