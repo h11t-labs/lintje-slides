@@ -246,9 +246,15 @@ function checkSlide(slide) {
 
 /** Every finding in the deck, for scripts/check.mjs and the console. */
 export function check() {
-  return slides.flatMap((slide, index) =>
+  const findings = slides.flatMap((slide, index) =>
     checkSlide(slide).map(({ message, elements }) => ({ slide: index + 1, layout: slide.dataset.layout ?? '', message, elements })),
   )
+  // The deck's own choices are reported with its first slide.
+  const controls = document.body.dataset.controls
+  if (controls !== undefined && !SIDES.includes(controls)) {
+    findings.unshift({ slide: 1, layout: slides[0]?.dataset.layout ?? '', message: `data-controls="${controls}" bestaat niet; wel: ${SIDES.join(', ')}`, elements: [] })
+  }
+  return findings
 }
 
 function showFindings(findings) {
@@ -280,8 +286,14 @@ function current() {
   return Number.isInteger(number) ? Math.min(Math.max(number, 1), slides.length) : 1
 }
 
+// Where the controls stand: the deck says so on `<body data-controls>`, the URL (`?controls=`) goes
+// first, and a value that is no side leaves them at the bottom.
+const SIDES = ['bottom', 'top', 'left', 'right']
+const side = [params.get('controls'), document.body.dataset.controls].find((value) => SIDES.includes(value)) ?? 'bottom'
+
 const nav = document.createElement('nav')
 nav.className = 'slides-nav'
+nav.dataset.side = side
 nav.setAttribute('aria-label', "Dia's")
 nav.innerHTML = `
   <lintje-icon-button variant="flat" class="slides-nav__previous" icon="functioneel-delta-naar-links" label="Vorige dia"></lintje-icon-button>
@@ -356,9 +368,11 @@ function scale() {
   const factor = Math.min(innerWidth / width, innerHeight / height)
   const style = document.documentElement.style
   style.setProperty('--slide-scale', String(factor))
-  // The controls stand in the margin under the slide when it holds them, else in the footer's band.
-  const margin = (innerHeight - height * factor) / 2
-  style.setProperty('--slides-nav-bottom', `${margin >= 44 ? (margin - 42) / 2 : margin + 3 * factor}px`)
+  // The controls stand in the margin beside the slide when it holds them, else just inside the
+  // slide's edge: at the bottom that is the footer's band.
+  const room = (margin) => `${margin >= 44 ? (margin - 42) / 2 : margin + 3 * factor}px`
+  style.setProperty('--slides-nav-block', room((innerHeight - height * factor) / 2))
+  style.setProperty('--slides-nav-inline', room((innerWidth - width * factor) / 2))
 }
 
 function fullscreen() {

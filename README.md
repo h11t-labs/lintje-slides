@@ -88,19 +88,23 @@ opdrachten elk deck in de map en eronder: elk `.html`-bestand met `<section clas
 buiten `node_modules/` en `out/`. Een andere server die de map van het project serveert, werkt
 ook; `lintje-slides serve` levert altijd de versie van Lintje die bij het pakket hoort.
 
-De controle meldt een onbekende indeling of veld, een ontbrekend veld, te veel woorden of punten,
+De controle meldt een onbekende indeling of veld, een `data-controls` dat geen plek is, een ontbrekend veld, te veel woorden of punten,
 een foto zonder alt-tekst, opmaak in de inhoud, en tekst die niet in zijn vak past. Een deck met
 meldingen krijgt geen pdf en geen bundel.
 
 In de browser zet `?mode=dark` het deck donker, `?theme=defensie` probeert een ander thema dan het
-deck zelf noemt (`data-theme`), en `?check` toont de meldingen van de controle op de dia's.
+deck zelf noemt (`data-theme`), `?controls=right` zet de balk met knoppen op een andere plek dan het
+deck noemt (`data-controls`), en `?check` toont de meldingen van de controle op de dia's.
 
 ## Presenteren
 
 Onderaan in het midden staat een balk met knoppen voor de vorige dia, de volgende dia, licht of
 donker, het overzicht van alle dia's, de sprekersweergave, volledig scherm en de sneltoetsen. Is
 het scherm hoger dan de dia, dan staat de balk in de marge eronder; anders in de band van de voet,
-waar het midden vrij is. Ze faden in als je de muis beweegt en faden langzamer
+waar het midden vrij is. Wil je de balk ergens anders, dan zet je `data-controls="top"`, `"left"`
+of `"right"` op `<body>`, of voor één keer `?controls=left` achter de URL; links en rechts staan de
+knoppen onder elkaar. Is er aan die kant geen marge, dan staat de balk net binnen de rand van de
+dia. Ze faden in als je de muis beweegt en faden langzamer
 uit als hij even stilstaat, als je bladert met de toetsen of een clicker, en kort nadat het deck
 opent. In de pdf staan ze nooit. In het overzicht staan alle dia's klein naast elkaar, met hun
 nummer; de dia waar je bent heeft een rand en een gevuld nummer: klik er een aan, of kies met de
@@ -145,7 +149,7 @@ je eigen scherm, sleep het zaalvenster naar de beamer en druk daar op F.
 
 `src/slides.css` noemt alleen tokens van Lintje voor kleur, ruimte tussen tekst en de hoeken. De
 controle van Lintje (`node node_modules/lintje/dist-elements/skills/lintje/check.mjs
-node_modules/lintje/dist-elements/tokens.json src/slides.css`) meldt toch achttien plekken. Die
+node_modules/lintje/dist-elements/tokens.json src/slides.css`) meldt toch eenentwintig plekken. Die
 staan er met reden:
 
 - **Plaatsen op het vlak**: de voet op 684 px, de meldingen van de controle 52 px boven de onderkant, de witte rand van 24 en 48 px, de marge van 72 px,
@@ -153,7 +157,8 @@ staan er met reden:
   1280 × 720 en geen pagina; deze maten komen uit het ontwerpcanvas.
 - **Uitlijning**: het grote aanhalingsteken staat waar het canvas het zet.
 - **`--slide-scale`** is de schaal waarmee `slides.js` de dia op het scherm past, en
-  **`--slides-nav-bottom`** de plek die het de balk met knoppen geeft: in de marge of in de voet.
+  **`--slides-nav-block`** en **`--slides-nav-inline`** de plek die het de balk met knoppen geeft:
+  in de marge of net binnen de rand.
 - **Het overzicht**: `slides.js` zet het aantal kolommen en de verkleining
   (`--slide-overview-columns`, `--slide-overview-zoom`), en marges van 1280 en 720 px maal die
   verkleining trekken de kleine dia's tegen elkaar.

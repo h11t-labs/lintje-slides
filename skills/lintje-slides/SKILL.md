@@ -67,6 +67,9 @@ het deck.
   niet vanzelf: zet hem daar in het veld `speaker`.
 - **`data-theme`** is de organisatie: `rijksoverheid`, `marechaussee`, `defensie`, `landmacht`,
   `marine` of `luchtmacht`. Het embleem op de eerste en de laatste dia volgt het thema.
+- **`data-controls`** op `<body>` zet de balk met knoppen op een andere plek dan onder: `top`,
+  `left` of `right`. Laat het weg, tenzij de spreker erom vraagt; `?controls=left` achter de URL
+  doet hetzelfde voor één keer.
 - **`data-chapter`** op de eerste dia van een hoofdstuk zet het hoofdstuk in de voet, tot een dia
   een ander zet; `data-chapter=""` zet het uit, zoals op de agenda en de samenvatting. De tekst
   staat letterlijk in de voet: een nummer en één of twee woorden (`data-chapter="2 Aanpak"`). Zet
@@ -211,6 +214,7 @@ noemt de eenheid langs de as. Meer soorten en velden staan in Lintje, dat het pa
 | `<… style>` of `<… class>` | Haal de opmaak weg; wat de dia anders moet laten zien, is een andere indeling. |
 | `de foto heeft een alt-tekst` | Beschrijf wat er op de foto staat. |
 | `de foto … laadt niet` | Zet het bestand op het pad uit `src`, of zet het grijze vlak op zijn plek. |
+| `data-controls="…" bestaat niet` | Neem `bottom`, `top`, `left` of `right`, of haal het attribuut weg. |
 | `fout in de pagina, vaak de data van een grafiek …` | Vergelijk de JSON van elke grafiek met [Grafieken](#grafieken); de melding noemt geen dia. |
 
 Eén oorzaak geeft één melding: wat de woorden, het vak en de punten van een veld zeggen, staat
