@@ -124,9 +124,11 @@ op dezelfde dia uit.
 
 Een dia kan notities hebben, in een `<aside data-notes>` in de dia. De zaal ziet ze nooit: niet
 op de dia, in het overzicht of in de pdf. S of de knop Sprekersweergave opent de
-sprekersweergave in een tweede venster (`?presenter`): de dia die de zaal ziet, daarnaast de
-volgende dia met de notities eronder, de tijd en de duur, met een knop die de duur op nul zet. Het overzicht (O)
-werkt er ook. De twee vensters lopen gelijk, ook licht of donker, wat je ook gebruikt om te bladeren. Zet de sprekersweergave op
+sprekersweergave in een tweede venster (`?presenter`). Bovenaan staan de naam van het deck, de dia
+waar je bent, de duur als groot cijfer met de knop Op nul, de tijd, en knoppen voor Vorige,
+Volgende en Sluiten. Daaronder staat links de dia die de zaal ziet met de volgende dia klein
+eronder, en rechts de notities. Het overzicht (O) werkt er ook. De twee vensters lopen gelijk, ook
+licht of donker, wat je ook gebruikt om te bladeren. Zet de sprekersweergave op
 je eigen scherm, sleep het zaalvenster naar de beamer en druk daar op F.
 
 ## Hoe het werkt
