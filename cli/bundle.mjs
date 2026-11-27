@@ -1,7 +1,7 @@
 // Writes each deck to out/<deck>.html: one file that opens without a server or a network. Modules
 // go in an import map as data URLs under bare names (bundle/node_modules/…), because a data URL
 // has no folder to resolve a path in. Like the PDF, a deck with findings gets no bundle.
-import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { dirname, extname, relative, resolve } from 'node:path'
 import { eachDeck, printFindings } from './browser.mjs'
@@ -36,9 +36,7 @@ export async function bundle(decks) {
 async function inline(deckFile, loaded) {
   let html = await readFile(deckFile, 'utf8')
   const icons = new Set(loaded.map((url) => /\/dist-icons\/([^/?]+)\.svg/.exec(url)?.[1]).filter(Boolean).map(decodeURIComponent))
-  // Every theme's emblem: ?theme= on the bundle asks for another one than the build loaded.
   const iconFolder = fileFor('/node_modules/lintje/dist-icons/')
-  for (const file of await readdir(iconFolder)) if (file.startsWith('embleem-')) icons.add(file.replace(/\.svg$/, ''))
 
   html = await replace(html, /<link\b[^>]*\srel=["']?stylesheet\b[^>]*>/g, async (tag) => {
     const href = attribute(tag, 'href')
