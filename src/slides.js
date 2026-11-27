@@ -88,10 +88,21 @@ function markFigures(table) {
 
 const TEXT_TAGS = new Set(['P', 'UL', 'OL', 'LI', 'H3', 'H4', 'STRONG', 'EM', 'B', 'I', 'BR', 'A', 'MARK', 'SPAN', 'BLOCKQUOTE'])
 
-function words(element) {
-  return element.textContent.trim().split(/\s+/).filter(Boolean).length
+const INLINE_TAGS = new Set(['STRONG', 'EM', 'B', 'I', 'A', 'MARK', 'SPAN'])
+
+// The text as it reads: two blocks that stand against each other in the markup are still two words.
+function text(node) {
+  if (node.nodeType === Node.TEXT_NODE) return node.data
+  if (node.nodeType !== Node.ELEMENT_NODE) return ''
+  const inner = [...node.childNodes].map(text).join('')
+  return INLINE_TAGS.has(node.tagName) ? inner : ` ${inner} `
 }
 
+function words(element) {
+  return text(element).trim().split(/\s+/).filter(Boolean).length
+}
+
+/** Reports what a field has against its kind; false when its number of points is not the layout's. */
 function checkField(name, field, element, report) {
   const where = `veld "${name}"`
   const lists = element.matches('ul, ol') ? [element] : [...element.querySelectorAll(':scope > ul, :scope > ol')]
@@ -121,9 +132,11 @@ function checkField(name, field, element, report) {
       const [min, max] = field.items
       if (count < min || count > max) {
         report(min === max ? `${where} heeft ${min} punten, nu ${count}` : `${where} heeft ${min} tot ${max} punten, nu ${count}`)
+        return false
       }
     }
   }
+  return true
 }
 
 function checkImage(img, where, report) {
@@ -165,6 +178,7 @@ function checkSlide(slide) {
   if (titles.length === 1) limit(titles[0], layout.titleWords ?? 16)
 
   const seen = new Set()
+  const miscounted = new Set()
   for (const child of slide.children) {
     if (child.matches('h1, aside[data-notes], .slide__footer, .slide__logo, .slide__findings, .slide__number')) continue
     const field = child.dataset.field
@@ -179,13 +193,14 @@ function checkSlide(slide) {
       if (spec.required) report(`veld "${field}" ontbreekt`)
       continue
     }
-    checkField(field, spec, element, (message) => report(message, element))
+    if (!checkField(field, spec, element, (message) => report(message, element))) miscounted.add(element)
     limit(element, spec.words)
   }
   // Styling belongs to the layout: a style or class in the content is a way around it.
   for (const node of slide.querySelectorAll('[style], [class]')) {
     if (node.closest('lintje-chart, aside[data-notes], .slide__footer, .slide__logo, .slide__findings, .slide__number') || node === slide) continue
-    if (node.hasAttribute('class')) report(`<${node.tagName.toLowerCase()} class>: de opmaak komt uit de indeling`, node)
+    // The mark of an earlier finding is the check's own class.
+    if ([...node.classList].some((name) => name !== 'is-error')) report(`<${node.tagName.toLowerCase()} class>: de opmaak komt uit de indeling`, node)
     if (node.hasAttribute('style') && !node.matches('img[data-focus]')) report(`<${node.tagName.toLowerCase()} style>: de opmaak komt uit de indeling`, node)
   }
   // What does not fit: a box that overflows, or a field past the frame.
@@ -197,10 +212,12 @@ function checkSlide(slide) {
   for (const element of slide.querySelectorAll(':scope > h1, :scope > [data-field], [data-field] li, [data-field] figure')) {
     const field = element.closest('[data-field]')?.dataset.field
     if (field && !layout.fields[field]) continue
-    const box = element.getBoundingClientRect()
     const owner = element.matches('h1, [data-field]') ? element : element.closest('[data-field]')
+    // The layout is drawn for its own number of points: with another number, that is the finding.
+    if (miscounted.has(owner)) continue
+    const box = element.getBoundingClientRect()
     const state = fit(owner)
-    if (overflows(element) || box.right > frame.right - 24 * scale + 1) {
+    if (overflows(element) || box.right > frame.right - 24 * scale + 1 || box.top < frame.top - 1) {
       if (element === owner) state.tight = true
       else state.tightPoints.push(element)
     }

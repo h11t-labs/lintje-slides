@@ -29,12 +29,33 @@ npx playwright install chromium
 npm run dev                          # de server op poort 5190
 npm run check                        # elk deck in de repo, in licht
 npm run check -- --dark --images     # in donker, met een png per dia in out/
+npm test                             # de tests in test/
 npm run catalog                      # de catalogus van de skill uit src/layouts.js
 ```
 
 Een wijziging aan de opmaak bekijk je in licht **en** donker, en in het overzicht (toets O). De
-check in CI (`.github/workflows/check.yml`) draait de controle in licht en donker, kijkt of de
-catalogus bij `src/layouts.js` past en of het pakket de goede bestanden bevat.
+check in CI (`.github/workflows/check.yml`) draait de controle in licht en donker en de tests,
+kijkt of de catalogus bij `src/layouts.js` past en of het pakket de goede bestanden bevat.
+
+## Tests
+
+`npm run check` bewaakt het goede pad: het voorbeelddeck heeft geen meldingen. De tests in `test/`
+bewaken de rest, met de testrunner van Node en de Chromium van Playwright:
+
+- `check.test.mjs`: per regel van de controle een dia die hem breekt, met precies de meldingen die
+  hij geeft. Een nieuwe regel of een andere melding krijgt hier zijn rij.
+- `deck.test.mjs`: wat het deck om een dia bouwt, de toetsen en knoppen, het overzicht en de
+  sprekersweergave.
+- `cli.test.mjs`: de opdracht in een eigen project, zoals iemand die het pakket installeert hem
+  draait: welke decks hij vindt, wat `check`, `pdf` en `bundle` schrijven en wanneer ze weigeren, en
+  de bundel van het voorbeelddeck zonder server en zonder netwerk.
+- `release.test.mjs` en `layouts.test.mjs`: de scripts van een release, en wat elke indeling naast
+  `src/layouts.js` heeft.
+
+Een deck in een test is een string (`deck()` en `slide()` in `test/helpers.mjs`), nooit een
+`.html`-bestand in de repo: `npm run check` neemt elk deck dat het vindt. Een melding vergelijk je
+als hele lijst, zodat ook een tweede melding voor dezelfde oorzaak opvalt. Een fout die je vindt
+maar niet meteen oplost, leg je vast als test met `todo`: hij draait mee en houdt CI niet tegen.
 
 ## Uitbrengen
 

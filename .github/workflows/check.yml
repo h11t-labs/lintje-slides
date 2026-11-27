@@ -1,5 +1,5 @@
-# What a change has to pass: the check of every deck in the repo, in light and dark, a catalogue in
-# the skill that matches src/layouts.js, and a package with the files a deck needs.
+# What a change has to pass: the check of every deck in the repo, in light and dark, the tests, a
+# catalogue in the skill that matches src/layouts.js, and a package with the files a deck needs.
 name: Check
 
 # Once per pull request: main only takes merged pull requests, and a tag runs release.yml, which
@@ -23,6 +23,7 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm run check
       - run: npm run check -- --dark
+      - run: npm test
       - name: The catalogue matches src/layouts.js
         run: npm run catalog && git diff --exit-code skills/lintje-slides/layouts.md
       - name: The package holds what a deck loads

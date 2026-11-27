@@ -201,13 +201,14 @@ noemt de eenheid langs de as. Meer soorten en velden staan in Lintje, dat het pa
 | melding | wat je doet |
 |---|---|
 | `veld "…" past niet: maak de tekst korter` | Schrap woorden, of kies een indeling met meer ruimte. Een kleinere letter bestaat niet. Met `(67 woorden, hoogstens 60)` erachter weet je hoeveel eraf moet. |
+| `de titel past niet: maak de tekst korter` | De titel is langer dan zijn vak, ook als hij binnen zijn woorden blijft: lange woorden vullen de blauwe band eerder. Kort hem in. |
 | `3 punten in "…" passen niet: maak de tekst korter` | Hetzelfde, voor de punten in dat veld die te lang zijn. |
 | `veld "…": hoogstens … woorden, nu …` | De tekst past nog, maar is langer dan de indeling toelaat: schrap woorden. |
 | `… vallen van de dia: de titel of de tekst erboven is te lang` | De genoemde velden en punten zijn weggeduwd, ook een foto: maak de titel of het tekstveld erboven korter. Op de titeldia is het bijna altijd de titel. |
 | `de titel heeft hoogstens … woorden, nu …` | Kort de titel in; op de titeldia gaat de rest in de ondertitel. Met `: … vallen van de dia` erachter duwt de titel die velden weg: ze passen weer als de titel korter is. |
 | `veld "…" ontbreekt` | Voeg het veld toe; `layouts.md` zegt wat erin hoort. |
 | `"…" is geen veld van …` | De melding noemt de velden die wel bestaan. |
-| `heeft 3 punten, nu 4` | Neem het aantal punten dat de indeling heeft, of kies een andere. |
+| `heeft 3 punten, nu 4` | Neem het aantal punten dat de indeling heeft, of kies een andere. Of de punten passen, meet de controle pas als het aantal klopt. |
 | `<… style>` of `<… class>` | Haal de opmaak weg; wat de dia anders moet laten zien, is een andere indeling. |
 | `de foto heeft een alt-tekst` | Beschrijf wat er op de foto staat. |
 | `de foto … laadt niet` | Zet het bestand op het pad uit `src`, of zet het grijze vlak op zijn plek. |
