@@ -1421,7 +1421,7 @@ body {
 .slides-nav {
   position: fixed;
   right: 0;
-  bottom: var(--slides-nav-bottom, var(--space-4));
+  bottom: var(--slides-nav-block, var(--space-4));
   left: 0;
   width: fit-content;
   margin-inline: auto;
@@ -1432,6 +1432,37 @@ body {
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-control);
   transition: opacity var(--dur-base) var(--ease-fade);
+}
+
+/* The deck or the URL may move the controls to another side of the slide: at the top as they are,
+   left and right as a column in the same order. Never in the overview or the speaker's view. */
+html:not(.slides-overview, .slides-speaking) .slides-nav[data-side='top'] {
+  top: var(--slides-nav-block, var(--space-4));
+  bottom: auto;
+}
+
+html:not(.slides-overview, .slides-speaking) .slides-nav:is([data-side='left'], [data-side='right']) {
+  top: 0;
+  bottom: 0;
+  flex-direction: column;
+  height: fit-content;
+  margin-block: auto;
+  margin-inline: 0;
+
+  & .slides-nav__count {
+    min-width: 0;
+    padding-block: var(--space-1);
+  }
+}
+
+html:not(.slides-overview, .slides-speaking) .slides-nav[data-side='left'] {
+  right: auto;
+  left: var(--slides-nav-inline, var(--space-4));
+}
+
+html:not(.slides-overview, .slides-speaking) .slides-nav[data-side='right'] {
+  right: var(--slides-nav-inline, var(--space-4));
+  left: auto;
 }
 
 /* Out of the way while presenting: it fades when the mouse rests, slower than it comes back, and
