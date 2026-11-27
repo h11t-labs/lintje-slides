@@ -1724,10 +1724,11 @@ html.slides-overview,
 }
 
 /* A link at the label's size and weight: Lintje's own link is body size and bold. The padding
-   gives it the height of a text target without moving the line. */
+   above gives it the height of a text target without moving the line; none below, so the focus
+   ring stays clear of the figure under it. */
 .slides-presenter__reset {
-  margin-block: calc(var(--space-1) * -1);
-  padding: var(--space-1) 0;
+  margin-top: calc(var(--space-1) * -1);
+  padding: var(--space-1) 0 0;
   color: var(--color-link);
   background: none;
   border: 0;
