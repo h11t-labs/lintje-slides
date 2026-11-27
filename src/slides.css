@@ -1754,6 +1754,11 @@ html.slides-overview,
   justify-self: stretch;
 }
 
+/* Lintje's link is body size and has no smaller one; zoomed, it reads at the label's size. */
+.slides-presenter__reset {
+  zoom: 0.875;
+}
+
 .slides-presenter__elapsed {
   font: var(--text-display);
   font-variant-numeric: tabular-nums;
