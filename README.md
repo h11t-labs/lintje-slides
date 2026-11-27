@@ -143,7 +143,7 @@ je eigen scherm, sleep het zaalvenster naar de beamer en druk daar op F.
 
 `src/slides.css` noemt alleen tokens van Lintje voor kleur, ruimte tussen tekst en de hoeken. De
 controle van Lintje (`node node_modules/lintje/dist-elements/skills/lintje/check.mjs
-node_modules/lintje/dist-elements/tokens.json src/slides.css`) meldt toch zeventien plekken. Die
+node_modules/lintje/dist-elements/tokens.json src/slides.css`) meldt toch zestien plekken. Die
 staan er met reden:
 
 - **Plaatsen op het vlak**: de voet op 684 px, de witte rand van 24 en 48 px, de marge van 72 px,
