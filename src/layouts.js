@@ -129,7 +129,7 @@ export const LAYOUTS = {
     use: 'Vier momenten op een tijdlijn, met waar het eindigt.',
     fields: {
       intro: { kind: 'text', words: 24 },
-      moments: { kind: 'text', required: true, items: [4, 4], words: 60, parts: '<ol>, elk een <li> met <strong> (het moment), <h3> en <p>' },
+      moments: { kind: 'text', required: true, items: [4, 4], words: 48, parts: '<ol>, elk een <li> met <strong> (het moment), <h3> en <p>' },
       end: { kind: 'label', words: 2 },
     },
   },
