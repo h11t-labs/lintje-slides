@@ -11,6 +11,19 @@ of verwijderen is een brekende wijziging en begint hier met **Brekend:**.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-11-28
+
+### Toegevoegd
+
+- De skill noemt zes grafieksoorten erbij die op een dia passen: `target-progress`, `dumbbell`, `stacked-area`, `histogram`, `heatmap` en `scatter`, met wanneer en de vorm, en noemt de soorten die niet op een dia passen. Een tweede voorbeeld, `examples/sneller-beslissen.html`, toont ze gevuld. (#29)
+- Drie indelingen voor een deck zonder foto's: `blue-divider`, een tussenpagina met het grote nummer en de titel wit op blauw, en `blue-title` en `blue-closing`, de titeldia en de afsluiting op het blauwe vlak zonder fotoplek. (#28)
+- `check --sheet` zet alle dia's van een deck genummerd in één png, `out/<deck>-overzicht.png` (in donker `out/<deck>-dark-overzicht.png`), om de volgorde en de afwisseling van de ondergronden in één blik te zien. (#27)
+- Het voorbeelddeck staat online op <https://h11t-labs.github.io/lintje-slides/>: een workflow zet bij elke push naar `main` de bundel op GitHub Pages, en de README linkt ernaar. (#26)
+
+### Gewijzigd
+
+- Een grafiek met een verkeerde vorm (ongeldige JSON, een onbekende soort, een ontbrekende lijst of een ontbrekend getal) is een melding bij zijn dia in plaats van "fout in de pagina", en de pagina loopt niet meer vast. (#29)
+
 ## [0.3.0] - 2026-11-27
 
 ### Toegevoegd
@@ -57,7 +70,8 @@ of verwijderen is een brekende wijziging en begint hier met **Brekend:**.
 - Presenteren in de browser: bladeren met toetsen en een clicker, knoppen die infaden als de muis beweegt, een overzicht van alle dia's (toets O), licht of donker (toets D, `?mode=dark`) en volledig scherm. Elke dia komt rustig in beeld, behalve bij minder beweging.
 - Een skill voor een AI-assistent, `skills/lintje-slides/`: de werkwijze van verhaallijn tot pdf, welke indeling bij welke boodschap past, goed gebruik van tekst, cijfers, grafieken en foto's, de vorm van een grafiek per soort en de velden van elke indeling. (#1)
 
-[unreleased]: https://github.com/h11t-labs/lintje-slides/compare/v0.3.0...HEAD
+[unreleased]: https://github.com/h11t-labs/lintje-slides/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/h11t-labs/lintje-slides/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/h11t-labs/lintje-slides/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/h11t-labs/lintje-slides/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/h11t-labs/lintje-slides/releases/tag/v0.1.0
