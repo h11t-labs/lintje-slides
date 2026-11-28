@@ -37,8 +37,8 @@ Een wijziging aan de opmaak bekijk je in licht **en** donker, en in het overzich
 check in CI (`.github/workflows/check.yml`) draait de controle in licht en donker en de tests,
 kijkt of de catalogus bij `src/layouts.js` past en of het pakket de goede bestanden bevat.
 
-Het voorbeelddeck staat online op <https://h11t-labs.github.io/lintje-slides/>: bij elke push naar
-`main` maakt `.github/workflows/pages.yml` er een bundel van en zet die op GitHub Pages.
+Het voorbeelddeck staat online op <https://h11t-labs.github.io/lintje-slides/>: bij elke release
+(een tag `v0.4.0`) maakt `.github/workflows/pages.yml` er een bundel van en zet die op GitHub Pages.
 
 ## Tests
 

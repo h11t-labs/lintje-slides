@@ -3,11 +3,11 @@
 # without findings, so a broken example fails here instead of going online.
 name: Pages
 
-# main only takes merged pull requests, so every push is a checked change. "Run workflow" puts
-# the current main online by hand.
+# The deck online is the one of the latest release: a version tag (v0.4.0) puts it there. "Run
+# workflow" puts the current main online by hand.
 on:
   push:
-    branches: [main]
+    tags: ['v*']
   workflow_dispatch:
 
 permissions:
